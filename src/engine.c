@@ -62,22 +62,6 @@ void wbRun(void)
     }
     WB_LOG_INFO("SDL_Image initialized.");
 
-    uint32_t flags = SDL_WINDOW_ALLOW_HIGHDPI;
-    window = SDL_CreateWindow("Battlecry", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1280, 720, flags);
-    if (window == NULL)
-    {
-        WB_LOG_ERROR("%s", SDL_GetError());
-    }
-    WB_LOG_INFO("Window created.");
-
-    flags = SDL_RENDERER_ACCELERATED;
-    renderer = SDL_CreateRenderer(window, -1, flags);
-    if (renderer == NULL)
-    {
-        WB_LOG_ERROR("%s", SDL_GetError());
-    }
-    WB_LOG_INFO("Renderer created.");
-
     screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR32, SDL_TEXTUREACCESS_TARGET, 1280, 720);
     if (screenTexture == NULL)
     {
