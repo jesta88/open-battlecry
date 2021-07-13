@@ -1,14 +1,9 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "../types.h"
 
 #define WB_SCANCODE_MASK (1<<30)
 #define WB_SCANCODE_TO_KEY(x)  (x | WB_SCANCODE_MASK)
-
-enum {
-    WB_INPUT_NAME_LENGTH = 64,
-};
 
 typedef enum WbInputContext
 {
@@ -16,7 +11,8 @@ typedef enum WbInputContext
     WB_INPUT_CONTEXT_GAME
 } WbInputContext;
 
-typedef enum WbMouseButton {
+typedef enum WbMouseButton
+{
     WB_MOUSE_BUTTON_LEFT,
     WB_MOUSE_BUTTON_MIDDLE,
     WB_MOUSE_BUTTON_RIGHT,
@@ -25,7 +21,8 @@ typedef enum WbMouseButton {
     WB_MOUSE_BUTTON_COUNT
 } WbMouseButton;
 
-typedef enum WbScancode {
+typedef enum WbScancode
+{
     WB_SCANCODE_UNKNOWN = 0,
     WB_SCANCODE_A = 4,
     WB_SCANCODE_B = 5,
@@ -235,7 +232,8 @@ typedef enum WbScancode {
     WB_SCANCODE_COUNT = 256
 } WbScancode;
 
-typedef enum WbKey {
+typedef enum WbKey
+{
     WB_KEY_UNKNOWN = 0,
 
     WB_KEY_RETURN = '\r',
@@ -481,7 +479,8 @@ typedef enum WbKeyMod
     WB_KEY_MOD_GUI = WB_KEY_MOD_LGUI | WB_KEY_MOD_RGUI
 } WbKeyMod;
 
-typedef struct WbInputState {
+typedef struct WbInputState
+{
     int32_t mouse_x;
     int32_t mouse_y;
     int32_t mouse_delta_x;
@@ -499,10 +498,3 @@ typedef struct WbInputState {
     char unicode_chars[WB_KEY_COUNT];
 } WbInputState;
 
-typedef struct WbInputBinding {
-    const char name[WB_INPUT_NAME_LENGTH];
-} WbInputBinding;
-
-typedef struct WbActionMap {
-    const char name[WB_INPUT_NAME_LENGTH];
-} WbActionMap;

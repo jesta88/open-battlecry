@@ -4,27 +4,25 @@ project(battlelords C)
 set(CMAKE_C_STANDARD 17)
 
 add_executable(battlelords
-    src/main.c
-    src/engine.c
-    src/input.c
-    src/input.h
+    src/client/main.c
+    src/client/client.c
+    src/client/input.c
+    src/client/input.h
     src/log.c
     src/log.h
     src/bits.h
-    src/renderer_sdl.c
-    src/renderer.h
-    src/game_state.c
-    src/game_state.h
+    src/client/renderer_sdl.c
+    src/client/renderer.h
     src/types.h
-    src/window.h
-    src/window_sdl.c
+    src/client/window.h
+    src/client/window_sdl.c
     src/assert.h
-    src/cvar.c
-    src/cvar.h
+    src/config.c
+    src/config.h
     src/hash.c
     src/hash.h
     src/hash_map.h
-    src/hash_map.c src/random.c src/random.h)
+    src/hash_map.c src/random.c src/random.h src/allocator.h src/allocator.c src/client/audio.c src/client/audio.h)
 
 target_include_directories(battlelords PRIVATE external/include)
 target_link_directories(battlelords PRIVATE external/lib)

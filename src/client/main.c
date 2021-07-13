@@ -1,11 +1,11 @@
-#include "engine.h"
+#include "client.h"
 
 int main(int argc, char* argv[])
 {
     (void)argc;
     (void)argv;
-    
-    wbRun();
+
+    wbClientRun();
     
     return 0;
 }

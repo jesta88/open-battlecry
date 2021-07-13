@@ -1,24 +1,39 @@
-#include "engine.h"
+#include "client.h"
+#include "../allocator.h"
+#include "window.h"
+#include "renderer.h"
 #include "input.h"
-#include "bits.h"
-#include "log.h"
+#include "../bits.h"
+#include "../log.h"
 #include <stdio.h>
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 
 enum
 {
+    WB_INIT_MEMORY_SIZE = 1024,
+
     WB_MAX_UNIT_SPRITES = 2048,
     WB_MAX_KEYBOARD_EVENTS = 64,
     WB_MAX_MOUSE_EVENTS = 256,
 };
 
+WbConfig* c_window_width;
+WbConfig* c_window_height;
+WbConfig* c_window_fullscreen;
+WbConfig* c_window_borderless;
+
+WbConfig* c_render_vsync;
+WbConfig* c_render_scale;
+
+WbConfig* c_audio_master_volume;
+WbConfig* c_audio_music_volume;
+WbConfig* c_audio_sfx_volume;
+WbConfig* c_audio_voice_volume;
+WbConfig* c_audio_ambient_volume;
+
 static bool quit;
 
-static SDL_Window* window;
-static SDL_Renderer* renderer;
-static SDL_Texture* screenTexture;
-
+static uint32_t unit_count;
 static SDL_Rect unit_frame_rects[WB_MAX_UNIT_SPRITES];
 static SDL_Rect unit_rects[WB_MAX_UNIT_SPRITES];
 static SDL_Texture* unit_textures[WB_MAX_UNIT_SPRITES];
@@ -48,38 +63,21 @@ static void handleKeyboardEvents(void);
 
 static void handleMouseEvents(void);
 
-void wbRun(void)
+static void loadConfigs(void)
 {
+
+}
+
+void wbClientRun(void)
+{
+
+
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
     {
         WB_LOG_ERROR("%s", SDL_GetError());
     }
-    WB_LOG_INFO("SDL initialized.");
 
-    if (IMG_Init(IMG_INIT_PNG) < 0)
-    {
-        WB_LOG_ERROR("%s", SDL_GetError());
-    }
-    WB_LOG_INFO("SDL_Image initialized.");
-
-    screenTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR32, SDL_TEXTUREACCESS_TARGET, 1280, 720);
-    if (screenTexture == NULL)
-    {
-        WB_LOG_ERROR("%s", SDL_GetError());
-    }
-
-    SDL_Surface* unit_surface = IMG_Load("../assets/images/sides/dwarves/ADBX.png");
-    if (unit_surface == NULL)
-    {
-        WB_LOG_ERROR("%s", IMG_GetError());
-    }
-
-    unit_textures[0] = SDL_CreateTextureFromSurface(renderer, unit_surface);
-    if (unit_textures[0] == NULL)
-    {
-        WB_LOG_ERROR("%s", SDL_GetError());
-    }
-    SDL_FreeSurface(unit_surface);
+    unit_textures[0] = wbCreateTexture(renderer, "../assets/images/sides/dwarves/ADBX.png");
 
     if (SDL_QueryTexture(unit_textures[0], NULL, NULL, &unit_frame_rects[0].w, &unit_frame_rects[0].h) < 0)
     {
