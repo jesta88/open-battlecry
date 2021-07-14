@@ -3,6 +3,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+enum
+{
+    WB_MAX_CONFIG_NAME_LENGTH = 23  // Ensures that WbConfig is 32 bytes.
+};
+
 typedef struct WbVec2
 {
     float x, y;
@@ -41,15 +46,13 @@ typedef enum WbCvarType
     WB_CVAR_INT,
     WB_CVAR_FLOAT,
     WB_CVAR_BOOL,
-    WB_CVAR_STRING
 } WbCvarType;
 
 typedef struct WbConfig
 {
-    char name[25];
-    bool save;
-    uint8_t type;
-    uint8_t index;
+    uint32_t name_hash;
+    char name[WB_MAX_CONFIG_NAME_LENGTH];
+    uint8_t flags;
     union
     {
         int32_t int_value;

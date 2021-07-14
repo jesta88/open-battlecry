@@ -8,8 +8,7 @@
 #include <malloc.h>
 
 #define INVALID_HASH 0
-#define	APPROX_85_PERCENT(x)	(((x) * 870) >> 10)
-#define	APPROX_40_PERCENT(x)	(((x) * 409) >> 10)
+#define APPROX_85_PERCENT(x)    (((x) * 870) >> 10)
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -19,7 +18,7 @@ int32_t __inline clz(uint32_t value)
 {
     unsigned long leading_zero = 0;
     if (_BitScanReverse(&leading_zero, value))
-        return 31 - (int32_t)leading_zero;
+        return 31 - (int32_t) leading_zero;
     else
         return 32;
 }
@@ -28,17 +27,12 @@ int32_t __inline clz(uint32_t value)
 static inline int32_t fls(uint32_t x)
 {
 #ifdef _MSC_VER
-    return x ? (int32_t)(sizeof(int) * CHAR_BIT) - clz(x) : 0;
+    return x ? (int32_t) (sizeof(int) * CHAR_BIT) - clz(x) : 0;
 #else
     return x ? (int32_t)(sizeof(int) * CHAR_BIT) - __builtin_clz(x) : 0;
 #endif
 }
 
-/*
- * Torbj�rn Granlundand Peter L.Montgomery, "Division by Invariant
- * Integers Using Multiplication", ACM SIGPLAN Notices, Issue 6, Vol 29,
- * http://gmplib.org/~tege/divcnst-pldi94.pdf, 61-72, June 1994.
- */
 static inline uint64_t fast_div32_init(uint32_t div)
 {
     uint64_t mt;
@@ -46,10 +40,10 @@ static inline uint64_t fast_div32_init(uint32_t div)
     int32_t l;
 
     l = fls(div - 1);
-    mt = (uint64_t)(0x100000000ULL * ((1ULL << l) - div));
-    s1 = (l > 1) ? 1U : (uint8_t)l;
-    s2 = (l == 0) ? 0 : (uint8_t)(l - 1);
-    return (uint64_t)(mt / div + 1) << 32 | (uint64_t)s1 << 8 | s2;
+    mt = (uint64_t) (0x100000000ULL * ((1ULL << l) - div));
+    s1 = (l > 1) ? 1U : (uint8_t) l;
+    s2 = (l == 0) ? 0 : (uint8_t) (l - 1);
+    return (uint64_t) (mt / div + 1) << 32 | (uint64_t) s1 << 8 | s2;
 }
 
 static inline uint32_t fast_div32(uint32_t v, uint64_t div_info)
@@ -57,7 +51,7 @@ static inline uint32_t fast_div32(uint32_t v, uint64_t div_info)
     const uint32_t m = div_info >> 32;
     const unsigned s1 = (div_info & 0x0000ff00) >> 8;
     const unsigned s2 = (div_info & 0x000000ff);
-    const uint32_t t = (uint32_t)(((uint64_t)v * m) >> 32);
+    const uint32_t t = (uint32_t) (((uint64_t) v * m) >> 32);
     return (t + ((v - t) >> s1)) >> s2;
 }
 
@@ -75,29 +69,29 @@ static bool validate_probe_sequence_length(WbHashMap* hash_map, const WbHashMapB
 
 void wbHashMapInit(WbHashMap* hash_map, uint16_t capacity)
 {
-    WB_ASSERT(hash_map);
+    WB_ASSERT(hash_map != NULL);
     WB_ASSERT(capacity > 1);
     WB_ASSERT(capacity < UINT16_MAX);
 
     hash_map->capacity = capacity;
     hash_map->count = 0;
 
-    WbRandom random = { 0 };
+    WbRandom random = {0};
     wbRandomInit(&random, SDL_GetTicks());
     hash_map->seed = wbRandomUint(&random);
 
     hash_map->buckets = calloc(capacity, sizeof(WbHashMapBucket));
-    WB_ASSERT(hash_map->buckets);
+    WB_ASSERT(hash_map->buckets != NULL);
 
     hash_map->div_info = fast_div32_init(capacity);
 }
 
 void wbHashMapFree(WbHashMap* hash_map)
 {
-    WB_ASSERT(hash_map);
+    WB_ASSERT(hash_map != NULL);
 
     free(hash_map->buckets);
-    *hash_map = (WbHashMap){ 0 };
+    *hash_map = (WbHashMap) {0};
 }
 
 void wbHashMapAdd(WbHashMap* hash_map, const char* key, uint16_t value)
@@ -110,7 +104,7 @@ void wbHashMapAdd(WbHashMap* hash_map, const char* key, uint16_t value)
     uint32_t key_hash = INVALID_HASH;
     do
     {
-        key_hash = hash32(key, strlen(key), hash_map->seed);
+        key_hash = wbHash32(key, strlen(key), hash_map->seed);
     } while (key_hash == INVALID_HASH);
 
     WbHashMapBucket* bucket, entry;
@@ -138,7 +132,8 @@ void wbHashMapAdd(WbHashMap* hash_map, const char* key, uint16_t value)
         WB_ASSERT(validate_probe_sequence_length(hash_map, bucket, i));
 
         // Duplicate key
-        if (bucket->key_hash == key_hash) {
+        if (bucket->key_hash == key_hash)
+        {
             WB_LOG_ERROR("Duplicate hash map key: %s", key);
             WB_ASSERT(0);
         }
@@ -146,7 +141,8 @@ void wbHashMapAdd(WbHashMap* hash_map, const char* key, uint16_t value)
         /*
 		 * We found a "rich" bucket.  Capture its location.
 		 */
-        if (entry.probe_sequence_length > bucket->probe_sequence_length) {
+        if (entry.probe_sequence_length > bucket->probe_sequence_length)
+        {
             WbHashMapBucket temp_bucket;
 
             /*
@@ -181,7 +177,7 @@ uint16_t wbHashMapGet(WbHashMap* hash_map, const char* key)
     uint32_t key_hash = INVALID_HASH;
     do
     {
-        key_hash = hash32(key, strlen(key), hash_map->seed);
+        key_hash = wbHash32(key, strlen(key), hash_map->seed);
     } while (key_hash == INVALID_HASH);
     uint32_t n = 0, i = fast_rem32(key_hash, hash_map->capacity, hash_map->div_info);
     WbHashMapBucket* bucket;
@@ -193,7 +189,8 @@ uint16_t wbHashMapGet(WbHashMap* hash_map, const char* key)
     bucket = &hash_map->buckets[i];
     WB_ASSERT(validate_probe_sequence_length(hash_map, bucket, i));
 
-    if (bucket->key_hash == key_hash) {
+    if (bucket->key_hash == key_hash)
+    {
         return bucket->value;
     }
 
@@ -204,7 +201,8 @@ uint16_t wbHashMapGet(WbHashMap* hash_map, const char* key)
 	 * have been captured, if the key was inserted -- see the central
 	 * point of the algorithm in the insertion function.
 	 */
-    if (bucket->key_hash == INVALID_HASH || n > bucket->probe_sequence_length) {
+    if (bucket->key_hash == INVALID_HASH || n > bucket->probe_sequence_length)
+    {
         return UINT16_MAX;
     }
     n++;
@@ -221,7 +219,7 @@ uint16_t wbHashMapRemove(WbHashMap* hash_map, const char* key)
     uint32_t key_hash = INVALID_HASH;
     do
     {
-        key_hash = hash32(key, strlen(key), hash_map->seed);
+        key_hash = wbHash32(key, strlen(key), hash_map->seed);
     } while (key_hash == INVALID_HASH);
 
     uint32_t n = 0, i = fast_rem32(key_hash, hash_map->capacity, hash_map->div_info);
@@ -232,7 +230,8 @@ uint16_t wbHashMapRemove(WbHashMap* hash_map, const char* key)
 	 * The same probing logic as in the lookup function.
 	 */
     bucket = &hash_map->buckets[i];
-    if (bucket->key_hash == INVALID_HASH || n > bucket->probe_sequence_length) {
+    if (bucket->key_hash == INVALID_HASH || n > bucket->probe_sequence_length)
+    {
         return UINT16_MAX;
     }
     WB_ASSERT(validate_probe_sequence_length(hash_map, bucket, i));
@@ -252,7 +251,8 @@ uint16_t wbHashMapRemove(WbHashMap* hash_map, const char* key)
 	 * The probe sequence must be preserved in the deletion case.
 	 * Use the backwards-shifting method to maintain low variance.
 	 */
-    for (;;) {
+    for (;;)
+    {
         WbHashMapBucket* nbucket;
 
         bucket->key_hash = INVALID_HASH;
@@ -265,7 +265,8 @@ uint16_t wbHashMapRemove(WbHashMap* hash_map, const char* key)
 		 * Stop if we reach an empty bucket or hit a key which
 		 * is in its base (original) location.
 		 */
-        if (nbucket->key_hash == INVALID_HASH || nbucket->probe_sequence_length == 0) {
+        if (nbucket->key_hash == INVALID_HASH || nbucket->probe_sequence_length == 0)
+        {
             break;
         }
 

@@ -2,7 +2,7 @@
 #include "../allocator.h"
 #include "../config.h"
 #include "../log.h"
-#include "../bits.h"
+#include "../bits.inl"
 #include "../assert.h"
 #include <SDL2/SDL_video.h>
 

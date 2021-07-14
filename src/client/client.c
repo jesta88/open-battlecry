@@ -1,9 +1,10 @@
 #include "client.h"
-#include "../allocator.h"
+#include "../config.h"
 #include "window.h"
 #include "renderer.h"
 #include "input.h"
-#include "../bits.h"
+#include "../allocator.h"
+#include "../bits.inl"
 #include "../log.h"
 #include <stdio.h>
 #include <SDL2/SDL.h>
@@ -59,23 +60,19 @@ static int32_t selection_box_anchor_x;
 static int32_t selection_box_anchor_y;
 static SDL_Rect selection_box_rect;
 
-static void handleKeyboardEvents(void);
+static const char* config_file_name = "config.txt";
 
 static void handleMouseEvents(void);
-
-static void loadConfigs(void)
-{
-
-}
+static void handleKeyboardEvents(void);
 
 void wbClientRun(void)
 {
-
-
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
     {
         WB_LOG_ERROR("%s", SDL_GetError());
     }
+
+    wbConfigLoad(config_file_name);
 
     unit_textures[0] = wbCreateTexture(renderer, "../assets/images/sides/dwarves/ADBX.png");
 
@@ -108,18 +105,18 @@ void wbClientRun(void)
         handleMouseEvents();
 
         // Update
-        if (wbCheckBit8(&mouse_pressed_bitset, WB_MOUSE_BUTTON_LEFT))
+        if (wbCheckBit8(mouse_pressed_bitset, WB_MOUSE_BUTTON_LEFT))
         {
             render_selection_box = false;
             SDL_GetMouseState(&selection_box_anchor_x, &selection_box_anchor_y);
             update_selection_box = true;
         }
-        if (wbCheckBit8(&mouse_released_bitset, WB_MOUSE_BUTTON_LEFT))
+        if (wbCheckBit8(mouse_released_bitset, WB_MOUSE_BUTTON_LEFT))
         {
             update_selection_box = false;
             render_selection_box = false;
         }
-        if (update_selection_box && wbCheckBit8(&mouse_bitset, WB_MOUSE_BUTTON_LEFT))
+        if (update_selection_box && wbCheckBit8(mouse_bitset, WB_MOUSE_BUTTON_LEFT))
         {
             int32_t mouse_x, mouse_y;
             SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -152,7 +149,6 @@ void wbClientRun(void)
                 render_selection_box = false;
         }
 
-
         // Render
         SDL_SetRenderTarget(renderer, screenTexture);
         SDL_SetRenderDrawColor(renderer, 0xA5, 0xB7, 0xA4, 0xFF);
@@ -180,13 +176,9 @@ void wbClientRun(void)
         SDL_SetWindowTitle(window, title);
     }
 
-    WB_LOG_INFO("Quitting.");
+    wbConfigSave(config_file_name);
 
-    SDL_DestroyTexture(unit_textures[0]);
-
-    SDL_DestroyTexture(screenTexture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    wbDestroyWindow()
     SDL_Quit();
 }
 

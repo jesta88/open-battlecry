@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(battlelords C)
 
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 11)
 
 add_executable(battlelords
     src/client/main.c
@@ -10,7 +10,7 @@ add_executable(battlelords
     src/client/input.h
     src/log.c
     src/log.h
-    src/bits.h
+    src/bits.inl
     src/client/renderer_sdl.c
     src/client/renderer.h
     src/types.h
@@ -22,7 +22,7 @@ add_executable(battlelords
     src/hash.c
     src/hash.h
     src/hash_map.h
-    src/hash_map.c src/random.c src/random.h src/allocator.h src/allocator.c src/client/audio.c src/client/audio.h)
+    src/hash_map.c src/random.c src/random.h src/allocator.h src/allocator.c src/client/audio.c src/client/audio.h src/string.inl)
 
 target_include_directories(battlelords PRIVATE external/include)
 target_link_directories(battlelords PRIVATE external/lib)

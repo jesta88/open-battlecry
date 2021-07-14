@@ -2,12 +2,16 @@
 
 #include "types.h"
 
+typedef enum WbConfigFlags
+{
+    // Flags 1, 2 and 4 are reserved for config types
+    WB_CONFIG_SAVE = 1 << 3,
+    WB_CONFIG_DEPRECATED = 1 << 4,
+} WbConfigFlags;
+
+WbConfig* wbConfigInt(const char* name, int32_t value, uint8_t flags);
+WbConfig* wbConfigFloat(const char* name, float value, uint8_t flags);
+WbConfig* wbConfigBool(const char* name, bool value, uint8_t flags);
+
 void wbConfigLoad(const char* file_name);
 void wbConfigSave(const char* file_name);
-
-WbConfig* wbCvarGetInt(const char* name, int32_t value, bool save);
-
-void wbCvarRegisterInt(WbConfig* cvar, const char* name, int32_t int_value, bool save);
-void wbCvarRegisterFloat(WbConfig* cvar, const char* name, float float_value, bool save);
-void wbCvarRegisterBool(WbConfig* cvar, const char* name, bool bool_value, bool save);
-void wbCvarRegisterString(WbConfig* cvar, const char* name, const char* string_value, bool save);

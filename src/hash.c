@@ -1,7 +1,8 @@
 #include "hash.h"
 #include <xxhash.h>
+#include <string.h>
 
-uint32_t hash32(const char* input, uint64_t length, uint32_t seed)
+uint32_t wbHashString32(const char* input)
 {
-    return (uint32_t) XXH64(input, length, seed);
+    return XXH32(input, strlen(input), 0);
 }
