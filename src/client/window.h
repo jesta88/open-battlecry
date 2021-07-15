@@ -1,14 +1,21 @@
 #pragma once
 
-#include "../types.h"
+#include <stdint.h>
 
+typedef struct WbWindow WbWindow;
+typedef struct WbConfig WbConfig;
 typedef struct SDL_Window SDL_Window;
 
-typedef struct WbWindow
-{
-    SDL_Window* sdl_window;
-} WbWindow;
+extern WbConfig* c_window_width;
+extern WbConfig* c_window_height;
+extern WbConfig* c_window_fullscreen;
+extern WbConfig* c_window_borderless;
 
-WbWindow* wbCreateWindow(WbTempAllocator* allocator);
+WbWindow* wbCreateWindow(const char* title);
 void wbDestroyWindow(WbWindow* window);
-void wbWindowSize(const WbWindow* window, uint16_t* width, uint16_t* height);
+void wbHandleWindowEvents(void);
+
+void wbWindowGetSize(const WbWindow* window, uint16_t* width, uint16_t* height);
+void wbWindowSetTitle(const WbWindow* window, const char* title);
+
+SDL_Window* wbSdlWindow(const WbWindow* window);

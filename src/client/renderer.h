@@ -1,28 +1,20 @@
 #pragma once
 
-#include "../types.h"
-
+typedef struct WbRenderer WbRenderer;
+typedef struct WbTexture WbTexture;
+typedef struct WbConfig WbConfig;
 typedef struct WbWindow WbWindow;
-typedef struct SDL_Renderer SDL_Renderer;
-typedef struct SDL_Texture SDL_Texture;
+typedef struct WbRect WbRect;
 
-typedef struct WbRenderer
-{
-    SDL_Renderer* sdl_renderer;
-    SDL_Texture* screen_texture;
-} WbRenderer;
+extern WbConfig* c_render_vsync;
+extern WbConfig* c_render_scale;
 
-typedef struct WbTexture
-{
-    SDL_Texture* sdl_texture;
-} WbTexture;
-
-WbRenderer* wbCreateRenderer(WbWindow* window, WbTempAllocator* allocator);
+WbRenderer* wbCreateRenderer(const WbWindow* window);
 void wbDestroyRenderer(WbRenderer* renderer);
 
-// TODO: Replace temp allocator by a more appropriate allocator
-WbTexture* wbCreateTexture(const WbRenderer* renderer, const char* file_name, WbTempAllocator* allocator);
+WbTexture* wbCreateTexture(const WbRenderer* renderer, const char* file_name);
 
+void wbRendererDraw(const WbRenderer* renderer);
 void wbRendererPresent(const WbRenderer* renderer);
 
 void wbRenderSelectionBox(const WbRenderer* renderer, const WbRect* rect);
