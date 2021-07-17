@@ -3,7 +3,6 @@
 #include "string.inl"
 #include "log.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
 
 enum
@@ -22,11 +21,11 @@ enum
 static uint8_t client_config_count;
 static uint8_t server_config_count;
 static uint8_t game_config_count;
-static WbConfig client_configs[WB_MAX_CLIENT_CONFIGS];
-static WbConfig server_configs[WB_MAX_SERVER_CONFIGS];
-static WbConfig game_configs[WB_MAX_GAME_CONFIGS];
+static struct config client_configs[WB_MAX_CLIENT_CONFIGS];
+static struct config server_configs[WB_MAX_SERVER_CONFIGS];
+static struct config game_configs[WB_MAX_GAME_CONFIGS];
 
-static WbConfig* find(uint32_t hash, WbConfig* configs, uint8_t config_count)
+static struct config* find(uint32_t hash, struct config* configs, uint8_t config_count)
 {
     for (int i = 0; i < config_count; i++)
     {
@@ -36,47 +35,47 @@ static WbConfig* find(uint32_t hash, WbConfig* configs, uint8_t config_count)
     return NULL;
 }
 
-static bool findOrAdd(const char* name, WbConfig** config, uint8_t flags)
+static bool findOrAdd(const char* name, struct config** config, uint8_t flags)
 {
     char type = name[0];
-    uint32_t hash = wbHashString32(name);
-    bool isNew;
+    uint32_t hash = hash_string(name);
+    bool is_new;
 
     switch (type)
     {
         case 'c':
             *config = find(hash, client_configs, client_config_count);
-            isNew = *config == NULL;
+            is_new = *config == NULL;
             *config = &client_configs[client_config_count++];
             break;
         case 's':
             *config = find(hash, server_configs, server_config_count);
-            isNew = *config == NULL;
+            is_new = *config == NULL;
             *config = &server_configs[server_config_count++];
             break;
         case 'g':
             *config = find(hash, game_configs, game_config_count);
-            isNew = *config == NULL;
+            is_new = *config == NULL;
             *config = &game_configs[game_config_count++];
             break;
         default:
-            s_log_error("Invalid config name: %s\n", name);
+            log_error("Invalid config name: %s\n", name);
             return true;
     }
 
-    if (isNew)
+    if (is_new)
     {
-        wbStrncpy((*config)->name, name, WB_MAX_CONFIG_NAME_LENGTH);
+        string_copy((*config)->name, name, MAX_CONFIG_NAME_LENGTH);
         (*config)->name_hash = hash;
         (*config)->flags = flags;
     }
 
-    return isNew;
+    return is_new;
 }
 
-WbConfig* wbConfigInt(const char* name, int32_t value, uint8_t flags)
+struct config* config_get_int(const char* name, int32_t value, uint8_t flags)
 {
-    WbConfig* config = NULL;
+    struct config* config = NULL;
     bool isNew = findOrAdd(name, &config, flags);
     assert(config);
 
@@ -88,9 +87,9 @@ WbConfig* wbConfigInt(const char* name, int32_t value, uint8_t flags)
     return config;
 }
 
-WbConfig* wbConfigFloat(const char* name, float value, uint8_t flags)
+struct config* config_get_float(const char* name, float value, uint8_t flags)
 {
-    WbConfig* config = NULL;
+    struct config* config = NULL;
     bool isNew = findOrAdd(name, &config, flags);
     assert(config != NULL);
 
@@ -102,9 +101,9 @@ WbConfig* wbConfigFloat(const char* name, float value, uint8_t flags)
     return config;
 }
 
-WbConfig* wbConfigBool(const char* name, bool value, uint8_t flags)
+struct config* config_get_bool(const char* name, bool value, uint8_t flags)
 {
-    WbConfig* config = NULL;
+    struct config* config = NULL;
     bool isNew = findOrAdd(name, &config, flags);
     assert(config != NULL);
 
@@ -116,24 +115,24 @@ WbConfig* wbConfigBool(const char* name, bool value, uint8_t flags)
     return config;
 }
 
-void wbConfigLoad(const char* file_name)
+void config_load(const char* file_name)
 {
     FILE* file = fopen(file_name, "r");
     if (file == NULL)
     {
-        s_log_info("Could not find config file: %s", file_name);
+        log_info("Could not find config file: %s", file_name);
         return;
     }
 
     fclose(file);
 }
 
-void wbConfigSave(const char* file_name)
+void config_save(const char* file_name)
 {
     FILE* file = fopen(file_name, "w");
     if (file == NULL)
     {
-        s_log_error("Failed to open file: %s", file_name);
+        log_error("Failed to open file: %s", file_name);
         return;
     }
 

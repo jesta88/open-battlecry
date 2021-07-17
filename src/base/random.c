@@ -21,18 +21,18 @@ static inline uint64_t random_avalanche64(uint64_t h)
     return h;
 }
 
-void wbRandomInit(WbRandom* random, uint64_t seed)
+void random_init(random_t* random, uint64_t seed)
 {
     uint64_t value = ((seed) << 1ull) | 1ull; // Make it odd
     value = random_avalanche64(value);
     random->state[0] = 0ull;
     random->state[1] = (value << 1ull) | 1ull;
-    wbRandomUint(random);
+    random_uint(random);
     random->state[0] += random_avalanche64(value);
-    wbRandomUint(random);
+    random_uint(random);
 }
 
-uint32_t wbRandomUint(WbRandom* random)
+uint32_t random_uint(random_t* random)
 {
     uint64_t old_state = random->state[0];
     random->state[0] = old_state * 0x5851f42d4c957f2dull + random->state[1];
@@ -41,7 +41,7 @@ uint32_t wbRandomUint(WbRandom* random)
     return (xorshifted >> rot) | (xorshifted << ((-(int)rot) & 31));
 }
 
-float wbRandomFloat(WbRandom* random)
+float random_float(random_t* random)
 {
-    return random_float_normalized(wbRandomUint(random));
+    return random_float_normalized(random_uint(random));
 }

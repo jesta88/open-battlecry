@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <malloc.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #define INVALID_HASH 0
 #define APPROX_85_PERCENT(x)    (((x) * 870) >> 10)
@@ -60,14 +61,14 @@ static inline uint32_t fast_rem32(uint32_t v, uint32_t div, uint64_t div_info)
     return v - div * fast_div32(v, div_info);
 }
 
-static bool validate_probe_sequence_length(WbHashMap* hash_map, const WbHashMapBucket* bucket, uint32_t i)
+static bool validate_probe_sequence_length(hashmap_t* hash_map, const hashmap_bucket_t* bucket, uint32_t i)
 {
     uint32_t base_i = fast_rem32(bucket->key_hash, hash_map->capacity, hash_map->div_info);
     uint32_t diff = (base_i > i) ? hash_map->capacity - base_i + i : i - base_i;
     return bucket->key_hash == UINT32_MAX || diff == bucket->probe_sequence_length;
 }
 
-void wbHashMapInit(WbHashMap* hash_map, uint16_t capacity)
+void wbHashMapInit(hashmap_t* hash_map, uint16_t capacity)
 {
     assert(hash_map != NULL);
     assert(capacity > 1);
@@ -76,25 +77,25 @@ void wbHashMapInit(WbHashMap* hash_map, uint16_t capacity)
     hash_map->capacity = capacity;
     hash_map->count = 0;
 
-    WbRandom random = {0};
-    wbRandomInit(&random, s_get_tick());
-    hash_map->seed = wbRandomUint(&random);
+    random_t random = {0};
+    random_init(&random, time_now());
+    hash_map->seed = random_uint(&random);
 
-    hash_map->buckets = calloc(capacity, sizeof(WbHashMapBucket));
+    hash_map->buckets = calloc(capacity, sizeof(hashmap_bucket_t));
     assert(hash_map->buckets != NULL);
 
     hash_map->div_info = fast_div32_init(capacity);
 }
 
-void wbHashMapFree(WbHashMap* hash_map)
+void wbHashMapFree(hashmap_t* hash_map)
 {
     assert(hash_map != NULL);
 
     free(hash_map->buckets);
-    *hash_map = (WbHashMap) {0};
+    *hash_map = (hashmap_t) {0};
 }
 
-void wbHashMapAdd(WbHashMap* hash_map, const char* key, uint16_t value)
+void wbHashMapAdd(hashmap_t* hash_map, const char* key, uint16_t value)
 {
     // Should increase the size if we hit this assert
     assert(hash_map->count <= APPROX_85_PERCENT(hash_map->capacity));
@@ -104,10 +105,10 @@ void wbHashMapAdd(WbHashMap* hash_map, const char* key, uint16_t value)
     uint32_t key_hash = INVALID_HASH;
     do
     {
-        key_hash = wbHashString32(key);
+        key_hash = hash_string(key);
     } while (key_hash == INVALID_HASH);
 
-    WbHashMapBucket* bucket, entry;
+    hashmap_bucket_t* bucket, entry;
     uint32_t i;
 
     entry.key_hash = key_hash;
@@ -134,7 +135,7 @@ void wbHashMapAdd(WbHashMap* hash_map, const char* key, uint16_t value)
         // Duplicate key
         if (bucket->key_hash == key_hash)
         {
-            s_log_error("Duplicate hash map key: %s", key);
+            log_error("Duplicate hash map key: %s", key);
             assert(0);
         }
 
@@ -143,7 +144,7 @@ void wbHashMapAdd(WbHashMap* hash_map, const char* key, uint16_t value)
 		 */
         if (entry.probe_sequence_length > bucket->probe_sequence_length)
         {
-            WbHashMapBucket temp_bucket;
+            hashmap_bucket_t temp_bucket;
 
             /*
 			 * Place our key-value pair by swapping the "rich"
@@ -170,17 +171,17 @@ void wbHashMapAdd(WbHashMap* hash_map, const char* key, uint16_t value)
     assert(validate_probe_sequence_length(hash_map, bucket, i));
 }
 
-uint16_t wbHashMapGet(WbHashMap* hash_map, const char* key)
+uint16_t wbHashMapGet(hashmap_t* hash_map, const char* key)
 {
     assert(key != NULL);
 
     uint32_t key_hash = INVALID_HASH;
     do
     {
-        key_hash = wbHashString32(key);
+        key_hash = hash_string(key);
     } while (key_hash == INVALID_HASH);
     uint32_t n = 0, i = fast_rem32(key_hash, hash_map->capacity, hash_map->div_info);
-    WbHashMapBucket* bucket;
+    hashmap_bucket_t* bucket;
 
     /*
 	 * Lookup is a linear probe.
@@ -212,18 +213,18 @@ uint16_t wbHashMapGet(WbHashMap* hash_map, const char* key)
     goto probe;
 }
 
-uint16_t wbHashMapRemove(WbHashMap* hash_map, const char* key)
+uint16_t wbHashMapRemove(hashmap_t* hash_map, const char* key)
 {
     assert(key != NULL);
 
     uint32_t key_hash = INVALID_HASH;
     do
     {
-        key_hash = wbHashString32(key);
+        key_hash = hash_string(key);
     } while (key_hash == INVALID_HASH);
 
     uint32_t n = 0, i = fast_rem32(key_hash, hash_map->capacity, hash_map->div_info);
-    WbHashMapBucket* bucket;
+    hashmap_bucket_t* bucket;
     uint16_t value;
     probe:
     /*
@@ -253,7 +254,7 @@ uint16_t wbHashMapRemove(WbHashMap* hash_map, const char* key)
 	 */
     for (;;)
     {
-        WbHashMapBucket* nbucket;
+        hashmap_bucket_t* nbucket;
 
         bucket->key_hash = INVALID_HASH;
 

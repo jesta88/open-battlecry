@@ -1,7 +1,7 @@
 #include "input.h"
 #include "client.h"
-#include "../shared/config.h"
-#include "../shared/bits.inl"
+#include "../base/config.h"
+#include "../base/bits.inl"
 #include <SDL2/SDL_events.h>
 
 enum
@@ -10,27 +10,22 @@ enum
     C_MAX_MOUSE_EVENTS = 256,
 };
 
-struct WbInput
-{
-    WbBitset256 keys_bitset;
-    WbBitset256 previous_keys_bitset;
-    WbBitset8 mouse_bitset;
-    WbBitset8 previous_mouse_bitset;
+static struct bits256_t keys_bitset;
+static struct bits256_t previous_keys_bitset;
+static struct bits8_t mouse_bitset;
+static struct bits8_t previous_mouse_bitset;
 
-    int32_t mouse_delta_x;
-    int32_t mouse_delta_y;
-    int32_t mouse_wheel_x;
-    int32_t mouse_wheel_y;
+static int32_t mouse_delta_x;
+static int32_t mouse_delta_y;
+static int32_t mouse_wheel_x;
+static int32_t mouse_wheel_y;
 
-    SDL_Keymod key_mods;
+static SDL_Keymod key_mods;
 
-    bool mouse_double_click;
-    uint32_t last_click_tick;
+static bool mouse_double_click;
+static uint32_t last_click_tick;
 
-    char unicode_chars[C_KEY_PRINTABLE_COUNT];
-};
-
-static WbInput input;
+static char unicode_chars[C_KEY_PRINTABLE_COUNT];
 
 static const uint32_t doublePressMs = 500;
 
@@ -46,67 +41,67 @@ static const uint8_t scancode_to_key[] = {
     C_KEY_KP_4, C_KEY_KP_5, C_KEY_KP_6, C_KEY_KP_7, C_KEY_KP_8, C_KEY_KP_9, C_KEY_KP_0, C_KEY_KP_DECIMAL, 0, 0, 0, C_KEY_KP_EQUAL
 };
 
-static void handleMouseEvents(void);
-static void handleKeyboardEvents(void);
+static void handle_mouse_events(void);
+static void handle_keyboard_events(void);
 
-void wbHandleInputEvents(void)
+void c_handle_input_events(void)
 {
-    handleKeyboardEvents();
-    handleMouseEvents();
+    handle_keyboard_events();
+    handle_mouse_events();
 }
 
-bool wbMouseDown(enum c_mouse_button mouse_button)
+bool c_mouse_down(enum c_mouse_button mouse_button)
 {
-    return wbIsBitSet8(input.mouse_bitset, mouse_button);
+    return bits8_is_set(mouse_bitset, mouse_button);
 }
 
-bool wbMouseUp(enum c_mouse_button mouse_button)
+bool c_mouse_up(enum c_mouse_button mouse_button)
 {
-    return !wbIsBitSet8(input.mouse_bitset, mouse_button);
+    return !bits8_is_set(mouse_bitset, mouse_button);
 }
 
-bool wbMousePressed(enum c_mouse_button mouse_button)
+bool c_mouse_pressed(enum c_mouse_button mouse_button)
 {
-    return wbIsBitSet8(input.mouse_bitset, mouse_button) &&
-        !wbIsBitSet8(input.previous_mouse_bitset, mouse_button);
+    return bits8_is_set(mouse_bitset, mouse_button) &&
+           !bits8_is_set(previous_mouse_bitset, mouse_button);
 }
 
-bool wbMouseReleased(enum c_mouse_button mouse_button)
+bool c_mouse_released(enum c_mouse_button mouse_button)
 {
-    return !wbIsBitSet8(input.mouse_bitset, mouse_button) &&
-        wbIsBitSet8(input.previous_mouse_bitset, mouse_button);
+    return !bits8_is_set(mouse_bitset, mouse_button) &&
+           bits8_is_set(previous_mouse_bitset, mouse_button);
 }
 
-bool wbMouseDoublePressed(void)
+bool c_mouse_double_pressed(void)
 {
     return 0;
 }
 
-bool wbKeyDown(enum c_key key)
+bool c_key_down(enum c_key key)
 {
-    return wbIsBitSet256(&input.keys_bitset, key);
+    return bits256_is_set(&keys_bitset, key);
 }
 
-bool wbKeyUp(enum c_key key)
+bool c_key_up(enum c_key key)
 {
-    return !wbIsBitSet256(&input.keys_bitset, key);
+    return !bits256_is_set(&keys_bitset, key);
 }
 
-bool wbKeyPressed(enum c_key key)
+bool c_key_pressed(enum c_key key)
 {
-    return wbIsBitSet256(&input.keys_bitset, key) && !wbIsBitSet256(&input.previous_keys_bitset, key);
+    return bits256_is_set(&keys_bitset, key) && !bits256_is_set(&previous_keys_bitset, key);
 }
 
-bool wbKeyReleased(enum c_key key)
+bool c_key_released(enum c_key key)
 {
-    return !wbIsBitSet256(&input.keys_bitset, key) && wbIsBitSet256(&input.previous_keys_bitset, key);
+    return !bits256_is_set(&keys_bitset, key) && bits256_is_set(&previous_keys_bitset, key);
 }
 
-static void handleKeyboardEvents(void)
+static void handle_keyboard_events(void)
 {
-    memcpy(&input.previous_keys_bitset, &input.keys_bitset, sizeof(input.keys_bitset));
+    memcpy(&previous_keys_bitset, &keys_bitset, sizeof(keys_bitset));
 
-    input.key_mods = SDL_GetModState();
+    key_mods = SDL_GetModState();
 
     SDL_Event events[C_MAX_KEYBOARD_EVENTS];
     const int count = SDL_PeepEvents(
@@ -118,46 +113,46 @@ static void handleKeyboardEvents(void)
         const SDL_Event event = events[i];
         switch (event.type)
         {
-        case SDL_KEYDOWN:
-        {
-            if (event.key.repeat)
-                continue;
+            case SDL_KEYDOWN:
+            {
+                if (event.key.repeat)
+                    continue;
 
-            uint8_t key = scancode_to_key[event.key.keysym.scancode];
-            wbSetBit256(&input.keys_bitset, key);
+                uint8_t key = scancode_to_key[event.key.keysym.scancode];
+                bits256_set(&keys_bitset, key);
 
 #ifdef _WIN32
-            if (wbKeyPressed(C_KEY_F4) && wbHasFlag32(input.key_mods, KMOD_LALT))
-            {
-                c_quit->bool_value = true;
-            }
+                if (c_key_pressed(C_KEY_F4) && is_flag_set(key_mods, KMOD_LALT))
+                {
+                    c_quit->bool_value = true;
+                }
 #endif
-            break;
-        }
+                break;
+            }
 
-        case SDL_KEYUP:
-        {
-            uint8_t key = scancode_to_key[event.key.keysym.scancode];
-            wbClearBit256(&input.keys_bitset, key);
-            break;
-        }
+            case SDL_KEYUP:
+            {
+                uint8_t key = scancode_to_key[event.key.keysym.scancode];
+                bits256_clear(&keys_bitset, key);
+                break;
+            }
 
-        default:
-            break;
+            default:
+                break;
         }
     }
 }
 
-static void handleMouseEvents(void)
+static void handle_mouse_events(void)
 {
-    input.previous_mouse_bitset = input.mouse_bitset;
+    previous_mouse_bitset = mouse_bitset;
 
     SDL_Event events[C_MAX_MOUSE_EVENTS];
     const int count = SDL_PeepEvents(
         events, C_MAX_MOUSE_EVENTS,
         SDL_GETEVENT, SDL_MOUSEMOTION, SDL_MOUSEWHEEL);
 
-    input.mouse_delta_x = input.mouse_delta_y = input.mouse_wheel_x = input.mouse_wheel_y = 0;
+    mouse_delta_x = mouse_delta_y = mouse_wheel_x = mouse_wheel_y = 0;
 
     for (int i = 0; i < count; ++i)
     {
@@ -165,29 +160,27 @@ static void handleMouseEvents(void)
 
         switch (event.type)
         {
-        case SDL_MOUSEMOTION:
-            //                mouseTimeStamp[0] = m_curTime + event.motion.timestamp;
-            //                mouseTimeStamp[1] = m_curTime + event.motion.timestamp;
-            input.mouse_delta_x += event.motion.xrel;
-            input.mouse_delta_y += event.motion.yrel;
-            break;
+            case SDL_MOUSEMOTION:
+                //                mouseTimeStamp[0] = m_curTime + event.motion.timestamp;
+                //                mouseTimeStamp[1] = m_curTime + event.motion.timestamp;
+                mouse_delta_x += event.motion.xrel;
+                mouse_delta_y += event.motion.yrel;
+                break;
 
-        case SDL_MOUSEBUTTONDOWN:
-            wbSetBit8(&input.mouse_bitset, event.button.button - 1);
-            // TODO: Callback
-            break;
+            case SDL_MOUSEBUTTONDOWN:
+                bits8_set(&mouse_bitset, event.button.button - 1);
+                break;
 
-        case SDL_MOUSEBUTTONUP:
-            wbClearBit8(&input.mouse_bitset, event.button.button - 1);
-            // TODO: Callback
-            break;
+            case SDL_MOUSEBUTTONUP:
+                bits8_clear(&mouse_bitset, event.button.button - 1);
+                break;
 
-        case SDL_MOUSEWHEEL:
-            //                mouseTimeStamp[2] = m_curTime + event.wheel.timestamp;
-            //                mouseTimeStamp[3] = m_curTime + event.wheel.timestamp;
-            input.mouse_wheel_y += event.wheel.y;
-            input.mouse_wheel_x += event.wheel.x;
-            break;
+            case SDL_MOUSEWHEEL:
+                //                mouseTimeStamp[2] = m_curTime + event.wheel.timestamp;
+                //                mouseTimeStamp[3] = m_curTime + event.wheel.timestamp;
+                mouse_wheel_y += event.wheel.y;
+                mouse_wheel_x += event.wheel.x;
+                break;
         }
     }
 }

@@ -1,7 +1,7 @@
-#include "init.h"
+#include "base.h"
 #include "sokol_time.h"
 
-void s_init(void)
+void base_init(void)
 {
     stm_setup();
 }

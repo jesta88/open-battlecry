@@ -4,24 +4,31 @@ project(battlecry C)
 set(CMAKE_C_STANDARD 11)
 set(ignore ${CMAKE_CXX_COMPILER})
 
-set(SHARED_SRC
-    src/shared/log.c
-    src/shared/log.h
-    src/shared/bits.inl
-    src/shared/types.h
-    src/shared/config.c
-    src/shared/config.h
-    src/shared/hash.c
-    src/shared/hash.h
-    src/shared/hash_map.h
-    src/shared/hash_map.c
-    src/shared/string.inl
-    src/shared/random.c
-    src/shared/random.h
-    src/shared/allocator.h
-    src/shared/allocator.c 
-    src/shared/stb_sprintf.h
-    src/shared/stb.c "src/shared/time.inl" "src/shared/sokol_time.h" "src/shared/sokol.c" "src/shared/init.h" "src/shared/init.c" )
+set(BASE_SRC
+    src/base/log.c
+    src/base/log.h
+    src/base/bits.inl
+    src/base/math.h
+    src/base/config.c
+    src/base/config.h
+    src/base/hash.c
+    src/base/hash.h
+    src/base/hash_map.h
+    src/base/hash_map.c
+    src/base/string.inl
+    src/base/random.c
+    src/base/random.h
+    src/base/allocator.h
+    src/base/allocator.c
+    src/base/stb_sprintf.h
+    src/base/stb.c
+    src/base/time.inl
+    src/base/sokol_time.h
+    src/base/sokol.c
+    src/base/base.h
+    src/base/base.c
+    src/base/os.h
+    src/base/os.c)
 
 # Game
 add_library(game SHARED
@@ -30,7 +37,7 @@ add_library(game SHARED
 
 # Client
 add_executable(client
-    ${SHARED_SRC}
+    ${BASE_SRC}
     src/client/client.c
     src/client/input_sdl.c
     src/client/input.h
@@ -43,22 +50,25 @@ add_executable(client
     src/client/camera.c
     src/client/camera.h
     src/client/client.h 
-    "src/client/stb_rect_pack.h" 
-    "src/client/stb_truetype.h" 
-    "src/client/stb_image.h"
-    "src/client/font.h" 
-    "src/client/font.c" 
-    "src/client/stb.c")
+    src/client/stb_rect_pack.h
+    src/client/stb_truetype.h
+    src/client/font.h
+    src/client/font.c
+    src/client/stb.c src/client/png.c src/client/png.h)
 
 find_package(SDL2 CONFIG REQUIRED)
-find_package(sdl2-image CONFIG REQUIRED)
 
-target_link_libraries(client PRIVATE SDL2::SDL2 SDL2::SDL2main SDL2::SDL2_image)
+target_link_libraries(client PRIVATE SDL2::SDL2 SDL2::SDL2main)
 
 # Server
 add_executable(server
     src/server/main.c)
-    
+
+if (DEBUG)
+    target_compile_definitions(game PRIVATE DEBUG)
+    target_compile_definitions(client PRIVATE DEBUG)
+    target_compile_definitions(server PRIVATE DEBUG)
+endif()
 
 if (DEVELOPMENT)
     target_compile_definitions(game PRIVATE DEVELOPMENT)

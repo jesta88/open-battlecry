@@ -2,20 +2,19 @@
 
 #include <stdint.h>
 
-typedef struct WbWindow WbWindow;
-typedef struct WbConfig WbConfig;
-typedef struct SDL_Window SDL_Window;
+struct window;
+struct SDL_Window;
 
-extern WbConfig* c_window_width;
-extern WbConfig* c_window_height;
-extern WbConfig* c_window_fullscreen;
-extern WbConfig* c_window_borderless;
+extern struct config* c_window_width;
+extern struct config* c_window_height;
+extern struct config* c_window_fullscreen;
+extern struct config* c_window_borderless;
 
-WbWindow* wbCreateWindow(const char* title);
-void wbDestroyWindow(WbWindow* window);
+struct window* c_create_window(const char* title);
+void wbDestroyWindow(struct window* window);
 void wbHandleWindowEvents(void);
 
-void wbWindowGetSize(const WbWindow* window, uint16_t* width, uint16_t* height);
-void wbWindowSetTitle(const WbWindow* window, const char* title);
+void wbWindowGetSize(const struct window* window, uint16_t* width, uint16_t* height);
+void wbWindowSetTitle(const struct window* window, const char* title);
 
-SDL_Window* wbSdlWindow(const WbWindow* window);
+struct SDL_Window* wbSdlWindow(const struct window* window);

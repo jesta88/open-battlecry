@@ -1,8 +1,7 @@
 #include "window.h"
 #include "client.h"
-#include "../shared/config.h"
-#include "../shared/log.h"
-#include "../shared/bits.inl"
+#include "../base/config.h"
+#include "../base/log.h"
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_events.h>
 #include <assert.h>
@@ -10,23 +9,23 @@
 enum
 {
 #ifdef DEVELOPMENT
-    WB_MAX_WINDOWS = 8,
+    C_MAX_WINDOWS = 8,
 #else
-    WB_MAX_WINDOWS = 1,
+    C_MAX_WINDOWS = 1,
 #endif
 };
 
-struct WbWindow
+struct window
 {
     SDL_Window* sdl_window;
 };
 
-static WbWindow windows[WB_MAX_WINDOWS];
+static struct window windows[C_MAX_WINDOWS];
 
-WbWindow* wbCreateWindow(const char* title)
+struct window* c_create_window(const char* title)
 {
     uint8_t window_index = UINT8_MAX;
-    for (int i = 0; i < WB_MAX_WINDOWS; i++)
+    for (int i = 0; i < C_MAX_WINDOWS; i++)
     {
         if (windows[i].sdl_window == NULL)
         {
@@ -36,7 +35,7 @@ WbWindow* wbCreateWindow(const char* title)
     }
     assert(window_index != UINT8_MAX);
 
-    WbWindow* window = &windows[window_index];
+    struct window* window = &windows[window_index];
 
     int32_t position = SDL_WINDOWPOS_UNDEFINED;
 
@@ -53,13 +52,13 @@ WbWindow* wbCreateWindow(const char* title)
 
     if (window->sdl_window == NULL)
     {
-        s_log_error("%s", SDL_GetError());
+        log_error("%s", SDL_GetError());
     }
 
     return window;
 }
 
-void wbDestroyWindow(WbWindow* window)
+void wbDestroyWindow(struct window* window)
 {
     assert(window);
 
@@ -84,7 +83,7 @@ void wbHandleWindowEvents(void)
     }
 }
 
-void wbWindowGetSize(const WbWindow* window, uint16_t* width, uint16_t* height)
+void wbWindowGetSize(const struct window* window, uint16_t* width, uint16_t* height)
 {
     assert(window);
     assert(window->sdl_window);
@@ -95,14 +94,14 @@ void wbWindowGetSize(const WbWindow* window, uint16_t* width, uint16_t* height)
     *height = h;
 }
 
-void wbWindowSetTitle(const WbWindow* window, const char* title)
+void wbWindowSetTitle(const struct window* window, const char* title)
 {
     assert(window);
 
     SDL_SetWindowTitle(window->sdl_window, title);
 }
 
-SDL_Window* wbSdlWindow(const WbWindow* window)
+struct SDL_Window* wbSdlWindow(const struct window* window)
 {
     assert(window);
 

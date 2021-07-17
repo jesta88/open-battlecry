@@ -1,66 +1,67 @@
 #include "window.h"
 #include "renderer.h"
 #include "input.h"
-#include "audio.h"
-#include "../shared/init.h"
-#include "../shared/time.inl"
-#include "../shared/config.h"
+#include "../base/base.h"
+#include "../base/time.inl"
+#include "../base/config.h"
 #include <SDL2/SDL_events.h>
 
-WbConfig* c_quit;
+struct config* c_quit;
 
-WbConfig* c_window_width;
-WbConfig* c_window_height;
-WbConfig* c_window_fullscreen;
-WbConfig* c_window_borderless;
+struct config* c_window_width;
+struct config* c_window_height;
+struct config* c_window_fullscreen;
+struct config* c_window_borderless;
 
-WbConfig* c_render_vsync;
-WbConfig* c_render_scale;
+struct config* c_render_vsync;
+struct config* c_render_scale;
 
-WbConfig* c_audio_master_volume;
-WbConfig* c_audio_music_volume;
-WbConfig* c_audio_sfx_volume;
-WbConfig* c_audio_voice_volume;
-WbConfig* c_audio_ambient_volume;
+struct config* c_audio_master_volume;
+struct config* c_audio_music_volume;
+struct config* c_audio_sfx_volume;
+struct config* c_audio_voice_volume;
+struct config* c_audio_ambient_volume;
 
 static const char* config_file_name = "config.txt";
 
-static void handleMouseEvents(void);
-static void handleKeyboardEvents(void);
+static void handle_mouse_events(void);
+static void handle_keyboard_events(void);
 
 int main(int argc, char* argv[])
 {
-    s_init();
+    base_init();
 
-    wbConfigLoad(config_file_name);
+    config_load(config_file_name);
 
-    c_quit = wbConfigBool("c_quit", false, 0);
+    c_quit = config_get_bool("c_quit", false, 0);
 
-    c_window_width = wbConfigInt("c_window_width", 1280, WB_CONFIG_SAVE);
-    c_window_height = wbConfigInt("c_window_height", 720, WB_CONFIG_SAVE);
-    c_window_fullscreen = wbConfigBool("c_window_fullscreen", false, WB_CONFIG_SAVE);
-    c_window_borderless = wbConfigBool("c_window_borderless", false, WB_CONFIG_SAVE);
+    c_window_width = config_get_int("c_window_width", 1280, CONFIG_SAVE);
+    c_window_height = config_get_int("c_window_height", 720, CONFIG_SAVE);
+    c_window_fullscreen = config_get_bool("c_window_fullscreen", false, CONFIG_SAVE);
+    c_window_borderless = config_get_bool("c_window_borderless", false, CONFIG_SAVE);
 
-    c_render_vsync = wbConfigBool("c_render_vsync", false, WB_CONFIG_SAVE);
-    c_render_scale = wbConfigFloat("c_render_scale", 1.0f, WB_CONFIG_SAVE);
+    c_render_vsync = config_get_bool("c_render_vsync", false, CONFIG_SAVE);
+    c_render_scale = config_get_float("c_render_scale", 1.0f, CONFIG_SAVE);
 
-    c_audio_master_volume = wbConfigFloat("c_audio_master_volume", 1.0f, WB_CONFIG_SAVE);
-    c_audio_music_volume = wbConfigFloat("c_audio_music_volume", 1.0f, WB_CONFIG_SAVE);
-    c_audio_sfx_volume = wbConfigFloat("c_audio_sfx_volume", 1.0f, WB_CONFIG_SAVE);
-    c_audio_ambient_volume = wbConfigFloat("c_audio_ambient_volume", 1.0f, WB_CONFIG_SAVE);
-    c_audio_voice_volume = wbConfigFloat("c_audio_voice_volume", 1.0f, WB_CONFIG_SAVE);
+    c_audio_master_volume = config_get_float("c_audio_master_volume", 1.0f, CONFIG_SAVE);
+    c_audio_music_volume = config_get_float("c_audio_music_volume", 1.0f, CONFIG_SAVE);
+    c_audio_sfx_volume = config_get_float("c_audio_sfx_volume", 1.0f, CONFIG_SAVE);
+    c_audio_ambient_volume = config_get_float("c_audio_ambient_volume", 1.0f, CONFIG_SAVE);
+    c_audio_voice_volume = config_get_float("c_audio_voice_volume", 1.0f, CONFIG_SAVE);
 
-    WbWindow* window = wbCreateWindow("Open Battlecry");
-    WbRenderer* renderer = wbCreateRenderer(window);
+    struct window* window = c_create_window("Open Battlecry");
+    struct renderer* renderer = wbCreateRenderer(window);
 
     char title[128];
-    uint64_t last_tick = s_get_tick();
+    uint64_t last_tick = time_now();
+
+    struct texture* texture = wbCreateTexture(renderer, "../assets/images/sides/dwarves/ADBX.png", true);
 
     while (!c_quit->bool_value)
     {
         // Events
         wbHandleWindowEvents();
-        wbHandleInputEvents();
+        c_handle_input_events();
 
         // Update
 
@@ -69,13 +70,13 @@ int main(int argc, char* argv[])
         wbRendererPresent(renderer);
 
         // Stats
-        uint64_t frame_ticks = s_ticks_since(&last_tick);
-        sprintf(title, "Open Battlecry - %.2f ms", s_get_ms(frame_ticks));
+        uint64_t frame_ticks = time_since(&last_tick);
+        sprintf(title, "Open Battlecry - %.2f ms", time_ms(frame_ticks));
 
         wbWindowSetTitle(window, title);
     }
 
-    wbConfigSave(config_file_name);
+    config_save(config_file_name);
 
     wbDestroyRenderer(renderer);
     wbDestroyWindow(window);

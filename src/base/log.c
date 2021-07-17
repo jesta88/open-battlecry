@@ -8,7 +8,8 @@ static const char* log_type_string[3] = {
     "[ERROR]"
 };
 
-void s_log(enum s_log_type log_type, const char* format, ...)
+void log_printf(enum log_type log_type, const char* file_name,
+    int line, const char* function, const char* format, ...)
 {
     char buffer[2048];
 
@@ -18,6 +19,7 @@ void s_log(enum s_log_type log_type, const char* format, ...)
     va_end(args);
 
     const char* type = log_type_string[log_type];
-    FILE* file = log_type == S_LOG_ERROR ? stderr : stdout;
-    fprintf(file, "%s %s", type, buffer);
+    FILE* file = log_type == LOG_ERROR ? stderr : stdout;
+    fprintf(file, "%s %s:%i (%s) %s", type, file_name, line, function, buffer);
+    fflush(file);
 }

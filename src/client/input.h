@@ -2,8 +2,6 @@
 
 #include <stdbool.h>
 
-typedef struct WbInput WbInput;
-
 enum c_mouse_button
 {
     C_MOUSE_BUTTON_LEFT,
@@ -167,15 +165,15 @@ enum c_key_mod
     C_KEY_MOD_GUI = C_KEY_MOD_LGUI | C_KEY_MOD_RGUI
 };
 
-void wbHandleInputEvents(void);
+void c_handle_input_events(void);
 
-bool wbMouseDown(enum c_mouse_button mouse_button);
-bool wbMouseUp(enum c_mouse_button mouse_button);
-bool wbMousePressed(enum c_mouse_button mouse_button);
-bool wbMouseReleased(enum c_mouse_button mouse_button);
-bool wbMouseDoublePressed(void);
+bool c_mouse_down(enum c_mouse_button mouse_button);
+bool c_mouse_up(enum c_mouse_button mouse_button);
+bool c_mouse_pressed(enum c_mouse_button mouse_button);
+bool c_mouse_released(enum c_mouse_button mouse_button);
+bool c_mouse_double_pressed(void);
 
-bool wbKeyDown(enum c_key key);
-bool wbKeyUp(enum c_key key);
-bool wbKeyPressed(enum c_key key);
-bool wbKeyReleased(enum c_key key);
+bool c_key_down(enum c_key key);
+bool c_key_up(enum c_key key);
+bool c_key_pressed(enum c_key key);
+bool c_key_released(enum c_key key);

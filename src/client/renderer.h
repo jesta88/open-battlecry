@@ -1,21 +1,20 @@
 #pragma once
 
-typedef struct WbRenderer WbRenderer;
-typedef struct WbTexture WbTexture;
-typedef struct WbConfig WbConfig;
-typedef struct WbWindow WbWindow;
-typedef struct WbRect WbRect;
+#include "../base/math.h"
+#include <stdbool.h>
 
-extern WbConfig* c_render_vsync;
-extern WbConfig* c_render_scale;
+struct window;
 
-WbRenderer* wbCreateRenderer(const WbWindow* window);
-void wbDestroyRenderer(WbRenderer* renderer);
+extern struct config* c_render_vsync;
+extern struct config* c_render_scale;
 
-WbTexture* wbCreateTexture(const WbRenderer* renderer, const char* file_name);
+struct renderer* wbCreateRenderer(const struct window* window);
+void wbDestroyRenderer(struct renderer* renderer);
 
-void wbRendererDraw(const WbRenderer* renderer);
-void wbRendererPresent(const WbRenderer* renderer);
+struct texture* wbCreateTexture(const struct renderer* renderer, const char* file_name, bool transparent);
 
-void wbRenderSelectionBox(const WbRenderer* renderer, const WbRect* rect);
+void wbRendererDraw(const struct renderer* renderer);
+void wbRendererPresent(const struct renderer* renderer);
+
+void wbRenderSelectionBox(const struct renderer* renderer, const struct rect* rect);
 

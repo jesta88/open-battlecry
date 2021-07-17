@@ -1,7 +1,3 @@
 #pragma once
 
-#include <stdbool.h>
-
-typedef struct WbConfig WbConfig;
-
-extern WbConfig* c_quit;
+extern struct config* c_quit;
