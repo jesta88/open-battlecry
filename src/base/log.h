@@ -19,5 +19,5 @@ void log_printf(enum log_type log_type, const char* file_name,
 #ifdef DEBUG
 #define log_debug(...) log_printf(LOG_DEBUG, __FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
-#define log_debug(...) void(0)
+#define log_debug(...)
 #endif

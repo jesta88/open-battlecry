@@ -1,6 +1,7 @@
 #include "window.h"
 #include "renderer.h"
 #include "input.h"
+#include "image.h"
 #include "../base/base.h"
 #include "../base/time.inl"
 #include "../base/config.h"
@@ -51,6 +52,8 @@ int main(int argc, char* argv[])
 
     struct window* window = c_create_window("Open Battlecry");
     struct renderer* renderer = wbCreateRenderer(window);
+
+    image_init_decoders();
 
     char title[128];
     uint64_t last_tick = time_now();

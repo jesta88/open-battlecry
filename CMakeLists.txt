@@ -28,7 +28,7 @@ set(BASE_SRC
     src/base/base.h
     src/base/base.c
     src/base/os.h
-    src/base/os.c)
+    src/base/os.c "src/base/io.h" "src/base/io.c" "src/base/path.h" "src/base/path.c")
 
 # Game
 add_library(game SHARED
@@ -54,11 +54,12 @@ add_executable(client
     src/client/stb_truetype.h
     src/client/font.h
     src/client/font.c
-    src/client/stb.c src/client/png.c src/client/png.h)
+    src/client/stb.c "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c")
 
 find_package(SDL2 CONFIG REQUIRED)
 
 target_link_libraries(client PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_compile_options(client PRIVATE $<$<BOOL:${MSVC}>:/arch:AVX>)
 
 # Server
 add_executable(server

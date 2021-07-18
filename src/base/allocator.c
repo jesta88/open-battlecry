@@ -1,31 +1,43 @@
-//#include "allocator.h"
-//#include <assert.h>
-//#include <stdlib.h>
-//#include <string.h>
-//#include <stdbool.h>
-//
-//#define DEFAULT_ALIGNMENT (2 * sizeof(void*))
-//
-//static inline bool isPowerOfTwo(uintptr_t x)
-//{
-//    return (x & (x - 1)) == 0;
-//}
-//
-//static inline uintptr_t alignForward(uintptr_t ptr, size_t align)
-//{
-//    assert(isPowerOfTwo(align));
-//
-//    uintptr_t p = ptr;
-//    uintptr_t a = (uintptr_t) align;
-//    uintptr_t modulo = p & (a - 1);
-//
-//    if (modulo != 0)
-//        p += a - modulo;
-//
-//    return p;
-//}
-//
-//void b_init_allocator(b_allocator_t* allocator, void* buffer, uint32_t buffer_size)
+#include "allocator.h"
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+#define DEFAULT_ALIGNMENT (2 * sizeof(void*))
+
+struct allocator_t
+{
+    void* (*alloc)(uint64_t size);
+    void (*free)(void* ptr);
+};
+
+allocator_t* system_allocator = &(allocator_t)
+{
+    .alloc = malloc,
+    .free = free
+};
+
+static inline bool isPowerOfTwo(uintptr_t x)
+{
+    return (x & (x - 1)) == 0;
+}
+
+static inline uintptr_t alignForward(uintptr_t ptr, size_t align)
+{
+    assert(isPowerOfTwo(align));
+
+    uintptr_t p = ptr;
+    uintptr_t a = (uintptr_t) align;
+    uintptr_t modulo = p & (a - 1);
+
+    if (modulo != 0)
+        p += a - modulo;
+
+    return p;
+}
+
+//void b_init_allocator(allocator_t* allocator, void* buffer, uint32_t buffer_size)
 //{
 //    assert(allocator != NULL);
 //    assert(buffer != NULL);
@@ -36,14 +48,14 @@
 //    allocator->offset = 0;
 //}
 //
-//void b_reset_allocator(b_allocator_t* allocator)
+//void b_reset_allocator(allocator_t* allocator)
 //{
 //    assert(allocator != NULL);
 //
 //    allocator->offset = 0;
 //}
 //
-//void* b_alloc_align(b_allocator_t* allocator, uint32_t size, uint32_t alignment)
+//void* b_alloc_align(allocator_t* allocator, uint32_t size, uint32_t alignment)
 //{
 //    assert(allocator != NULL);
 //    assert(allocator->buffer != NULL);
@@ -66,8 +78,8 @@
 //    memset(pointer, 0, size);
 //    return pointer;
 //}
-//
-//void* b_alloc(b_allocator_t* allocator, uint32_t size)
+
+//void* b_alloc(allocator_t* allocator, uint32_t size)
 //{
-//    return b_alloc_align(allocator, size, DEFAULT_ALIGNMENT);
+//    return alloc_align(allocator, size, DEFAULT_ALIGNMENT);
 //}
