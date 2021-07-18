@@ -1,5 +1,7 @@
 #include "renderer.h"
 #include "window.h"
+#include "image.h"
+#include "../base/math.h"
 #include "../base/config.h"
 #include "../base/log.h"
 #include <SDL2/SDL_render.h>
@@ -7,147 +9,65 @@
 
 enum
 {
-#ifdef DEVELOPMENT
-    WB_MAX_RENDERERS = 8,
-#else
-    WB_MAX_RENDERERS = 1,
-#endif
-    WB_MAX_ANIMATED_SPRITES = 2048
+    MAX_SPRITES = 2048
 };
 
-struct renderer
+static SDL_Renderer* sdl_renderer;
+static SDL_Texture* screen_render_target;
+
+static bool update_selection_box;
+static bool render_selection_box;
+static int32_t selection_box_anchor_x;
+static int32_t selection_box_anchor_y;
+static SDL_Rect selection_box_rect;
+
+static uint32_t sprite_count;
+static SDL_Texture* sprite_textures[MAX_SPRITES];
+static SDL_Rect sprite_frame_rects[MAX_SPRITES];
+static SDL_Rect sprite_world_rects[MAX_SPRITES];
+
+void renderer_init(void)
 {
-    SDL_Renderer* sdl_renderer;
-    SDL_Texture* screen_render_target;
-
-    SDL_Texture* animated_sprites[WB_MAX_ANIMATED_SPRITES];
-
-    bool update_selection_box;
-    bool render_selection_box;
-    int32_t selection_box_anchor_x;
-    int32_t selection_box_anchor_y;
-    SDL_Rect selection_box_rect;
-};
-
-struct texture
-{
-    SDL_Texture* sdl_texture;
-};
-
-static struct renderer renderers[WB_MAX_RENDERERS];
-
-struct renderer* wbCreateRenderer(const struct window* window)
-{
-    assert(window != NULL);
-
-    uint8_t renderer_index = UINT8_MAX;
-    for (int i = 0; i < WB_MAX_RENDERERS; i++)
-    {
-        if (renderers[i].sdl_renderer == NULL)
-        {
-            renderer_index = i;
-            break;
-        }
-    }
-    assert(renderer_index != UINT8_MAX);
-
-    struct renderer* renderer = &renderers[renderer_index];
-
     uint32_t flags = SDL_RENDERER_ACCELERATED;
     if (c_render_vsync->bool_value) flags |= SDL_RENDERER_PRESENTVSYNC;
 
-    renderer->sdl_renderer = SDL_CreateRenderer(wbSdlWindow(window), -1, flags);
-    if (renderer->sdl_renderer == NULL)
+    sdl_renderer = SDL_CreateRenderer(window_get_sdl_window(), -1, flags);
+    if (sdl_renderer == NULL)
     {
         log_error("%s", SDL_GetError());
+        return;
     }
 
     uint16_t screen_width, screen_height;
-    wbWindowGetSize(window, &screen_width, &screen_height);
+    window_get_size(&screen_width, &screen_height);
 
-    renderer->screen_render_target = SDL_CreateTexture(
-        renderer->sdl_renderer, SDL_PIXELFORMAT_ABGR32,
+    screen_render_target = SDL_CreateTexture(
+        sdl_renderer, SDL_PIXELFORMAT_ABGR32,
         SDL_TEXTUREACCESS_TARGET, screen_width, screen_height);
 
-    if (renderer->screen_render_target == NULL)
+    if (screen_render_target == NULL)
     {
         log_error("%s", SDL_GetError());
     }
-
-    return renderer;
 }
 
-//
-//unit_textures[0] = wbCreateTexture(renderer, "../assets/images/sides/dwarves/ADBX.png");
-//
-//if (SDL_QueryTexture(unit_textures[0], NULL, NULL, &unit_frame_rects[0].w, &unit_frame_rects[0].h) < 0)
-//{
-//    log_error("%s", SDL_GetError());
-//}
-//
-//unit_frame_rects[0].w /= 2;
-//unit_frame_rects[0].h /= 8;
-//
-//unit_rects[0].x = 40;
-//unit_rects[0].y = 80;
-//unit_rects[0].w = unit_frame_rects[0].w;
-//unit_rects[0].h = unit_frame_rects[0].h;
-
-
-void wbDestroyRenderer(struct renderer* renderer)
+void renderer_quit(void)
 {
-    assert(renderer != NULL);
-
-    SDL_DestroyTexture(renderer->screen_render_target);
-    SDL_DestroyRenderer(renderer->sdl_renderer);
-    renderer->sdl_renderer = NULL;
+    SDL_DestroyTexture(screen_render_target);
+    SDL_DestroyRenderer(sdl_renderer);
+    sdl_renderer = NULL;
 }
 
-struct texture* wbCreateTexture(const struct renderer* renderer, const char* file_name, bool transparent)
+void renderer_draw(void)
 {
-    /*struct texture* texture = NULL;
+    SDL_SetRenderTarget(sdl_renderer, screen_render_target);
+    SDL_SetRenderDrawColor(sdl_renderer, 0xA5, 0xB7, 0xA4, 0xFF);
+    SDL_RenderClear(sdl_renderer);
 
-    texture = malloc(sizeof(*texture));
-    if (!texture)
+    for (int i = 0; i < sprite_count; i++)
     {
-        log_error("Failed to allocate memory of size: %ull", sizeof(struct texture));
-        goto bail;
+        SDL_RenderCopy(sdl_renderer, sprite_textures[i], &sprite_frame_rects[i], &sprite_world_rects[i]);
     }
-
-    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(workbuf.ptr, (int) width, (int) height,
-                                                            32, 4 * (int) width, SDL_PIXELFORMAT_RGBA32);
-    if (!surface)
-    {
-        log_error("%s", SDL_GetError());
-        goto bail;
-    }
-
-    SDL_Texture* sdl_texture = SDL_CreateTextureFromSurface(renderers[0].sdl_renderer, surface);
-    if (!sdl_texture)
-    {
-        log_error("%s", SDL_GetError());
-        goto bail;
-    }
-
-    SDL_FreeSurface(surface);
-
-    bail:
-    free(buffer);
-    fclose(file);
-
-    return texture;*/
-    return NULL;
-}
-
-void wbRendererDraw(const struct renderer* renderer)
-{
-    assert(renderer != NULL);
-
-    SDL_SetRenderTarget(renderer->sdl_renderer, renderer->screen_render_target);
-    SDL_SetRenderDrawColor(renderer->sdl_renderer, 0xA5, 0xB7, 0xA4, 0xFF);
-    SDL_RenderClear(renderer->sdl_renderer);
-
-    //SDL_RenderCopy(renderer, unit_textures[0], &unit_frame_rects[0], &unit_rects[0]);
 
     //    if (bits8_is_set(mouse_pressed_bitset, WB_MOUSE_BUTTON_LEFT))
     //    {
@@ -193,22 +113,79 @@ void wbRendererDraw(const struct renderer* renderer)
     //            render_selection_box = false;
     //    }
 
-    if (renderer->render_selection_box)
+    if (render_selection_box)
     {
-        SDL_SetRenderDrawColor(renderer->sdl_renderer, 0, 0xFF, 0, 0xFF);
-        SDL_RenderDrawRect(renderer->sdl_renderer, &renderer->selection_box_rect);
-        SDL_SetRenderDrawColor(renderer->sdl_renderer, 0xFF, 0, 0, 0xFF);
-        SDL_RenderDrawPoint(renderer->sdl_renderer, 100, 100);
+        SDL_SetRenderDrawColor(sdl_renderer, 0, 0xFF, 0, 0xFF);
+        SDL_RenderDrawRect(sdl_renderer, &selection_box_rect);
+        SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0, 0, 0xFF);
+        SDL_RenderDrawPoint(sdl_renderer, 100, 100);
     }
 
-    SDL_SetRenderTarget(renderer->sdl_renderer, NULL);
+    SDL_SetRenderTarget(sdl_renderer, NULL);
 
-    SDL_RenderCopy(renderer->sdl_renderer, renderer->screen_render_target, NULL, NULL);
+    SDL_RenderCopy(sdl_renderer, screen_render_target, NULL, NULL);
 }
 
-void wbRendererPresent(const struct renderer* renderer)
+void renderer_present(void)
 {
-    assert(renderer != NULL);
+    SDL_RenderPresent(sdl_renderer);
+}
 
-    SDL_RenderPresent(renderer->sdl_renderer);
+sprite_t renderer_add_sprite(image_t* image)
+{
+    if (sprite_count >= MAX_SPRITES)
+    {
+        log_error("Max sprite_textures reached.");
+        return (sprite_t) { UINT32_MAX };
+    }
+
+    if (image == NULL)
+    {
+        log_error("Image is null.");
+        return (sprite_t) { UINT32_MAX };
+    }
+
+    uint32_t sprite_index = sprite_count++;
+    SDL_Texture** texture = &sprite_textures[sprite_index];
+
+    *texture = SDL_CreateTextureFromSurface(sdl_renderer, image->sdl_surface);
+    image_free(image);
+
+    if (!(*texture))
+    {
+        log_error("%s", SDL_GetError());
+        return (sprite_t) { UINT32_MAX };
+    }
+
+    SDL_Rect* frame_rect = &sprite_frame_rects[sprite_index];
+    if (SDL_QueryTexture(*texture, NULL, NULL, &frame_rect->w, &frame_rect->h) < 0)
+    {
+        log_error("%s", SDL_GetError());
+        return (sprite_t) { UINT32_MAX };
+    }
+
+    frame_rect->w /= 2;
+    frame_rect->h /= 8;
+
+    SDL_Rect* world_rect = &sprite_world_rects[sprite_index];
+    world_rect->x = 40;
+    world_rect->y = 80;
+    world_rect->w = frame_rect->w;
+    world_rect->h = frame_rect->h;
+
+    return (sprite_t) { sprite_index };
+}
+
+void renderer_remove_sprite(sprite_t sprite)
+{
+    if (sprite.index == UINT32_MAX)
+    {
+        log_error("Invalid sprite.");
+        return;
+    }
+
+    SDL_DestroyTexture(sprite_textures[sprite.index]);
+    sprite_textures[sprite.index] = NULL;
+    sprite_count--;
+    // TODO: Compact arrays
 }

@@ -22,8 +22,8 @@ typedef struct point_t
     int32_t x, y;
 } point_t;
 
-struct rect
+typedef struct rect_t
 {
     int32_t x, y;
     int32_t w, h;
-};
+} rect_t;

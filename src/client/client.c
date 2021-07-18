@@ -6,6 +6,7 @@
 #include "../base/time.inl"
 #include "../base/config.h"
 #include <SDL2/SDL_events.h>
+#include <assert.h>
 
 struct config* c_quit;
 
@@ -50,39 +51,46 @@ int main(int argc, char* argv[])
     c_audio_ambient_volume = config_get_float("c_audio_ambient_volume", 1.0f, CONFIG_SAVE);
     c_audio_voice_volume = config_get_float("c_audio_voice_volume", 1.0f, CONFIG_SAVE);
 
-    struct window* window = c_create_window("Open Battlecry");
-    struct renderer* renderer = wbCreateRenderer(window);
+    window_init("Open Battlecry");
+    renderer_init();
 
     image_init_decoders();
 
     char title[128];
     uint64_t last_tick = time_now();
 
-    struct texture* texture = wbCreateTexture(renderer, "../assets/images/sides/dwarves/ADBX.png", true);
+    image_t test_image = {0};
+    image_load("../assets/images/sides/dwarves/ADBX.png", IMAGE_LOAD_TRANSPARENT, &test_image);
+
+    sprite_t test_sprite = renderer_add_sprite(&test_image);
+
+    assert(test_image.sdl_surface == NULL);
 
     while (!c_quit->bool_value)
     {
         // Events
-        wbHandleWindowEvents();
+        window_handle_events();
         c_handle_input_events();
 
         // Update
 
         // Render
-        wbRendererDraw(renderer);
-        wbRendererPresent(renderer);
+        renderer_draw();
+        renderer_present();
 
         // Stats
         uint64_t frame_ticks = time_since(&last_tick);
         sprintf(title, "Open Battlecry - %.2f ms", time_ms(frame_ticks));
 
-        wbWindowSetTitle(window, title);
+        window_set_title(title);
     }
 
     config_save(config_file_name);
 
-    wbDestroyRenderer(renderer);
-    wbDestroyWindow(window);
+    renderer_remove_sprite(test_sprite);
+
+    renderer_quit();
+    window_quit();
 
     return 0;
 }

@@ -1,20 +1,18 @@
 #pragma once
 
-#include "../base/math.h"
+#include <stdint.h>
 #include <stdbool.h>
 
-struct window;
+typedef struct image_t image_t;
+typedef struct { uint32_t index; } sprite_t;
 
 extern struct config* c_render_vsync;
 extern struct config* c_render_scale;
 
-struct renderer* wbCreateRenderer(const struct window* window);
-void wbDestroyRenderer(struct renderer* renderer);
+void renderer_init(void);
+void renderer_quit(void);
+void renderer_draw(void);
+void renderer_present(void);
 
-struct texture* wbCreateTexture(const struct renderer* renderer, const char* file_name, bool transparent);
-
-void wbRendererDraw(const struct renderer* renderer);
-void wbRendererPresent(const struct renderer* renderer);
-
-void wbRenderSelectionBox(const struct renderer* renderer, const struct rect* rect);
-
+sprite_t renderer_add_sprite(image_t* image);
+void renderer_remove_sprite(sprite_t sprite);

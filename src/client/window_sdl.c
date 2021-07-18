@@ -4,39 +4,11 @@
 #include "../base/log.h"
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_events.h>
-#include <assert.h>
 
-enum
+static SDL_Window* sdl_window;
+
+void window_init(const char* title)
 {
-#ifdef DEVELOPMENT
-    C_MAX_WINDOWS = 8,
-#else
-    C_MAX_WINDOWS = 1,
-#endif
-};
-
-struct window
-{
-    SDL_Window* sdl_window;
-};
-
-static struct window windows[C_MAX_WINDOWS];
-
-struct window* c_create_window(const char* title)
-{
-    uint8_t window_index = UINT8_MAX;
-    for (int i = 0; i < C_MAX_WINDOWS; i++)
-    {
-        if (windows[i].sdl_window == NULL)
-        {
-            window_index = i;
-            break;
-        }
-    }
-    assert(window_index != UINT8_MAX);
-
-    struct window* window = &windows[window_index];
-
     int32_t position = SDL_WINDOWPOS_UNDEFINED;
 
     bool borderless = c_window_borderless->bool_value;
@@ -46,27 +18,23 @@ struct window* c_create_window(const char* title)
     if (fullscreen && borderless) flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN_DESKTOP;
     else if (fullscreen) flags |= SDL_WINDOW_FULLSCREEN;
 
-    window->sdl_window = SDL_CreateWindow(
+    sdl_window = SDL_CreateWindow(
         title, position, position,
         c_window_width->int_value, c_window_height->int_value, flags);
 
-    if (window->sdl_window == NULL)
+    if (sdl_window == NULL)
     {
         log_error("%s", SDL_GetError());
     }
-
-    return window;
 }
 
-void wbDestroyWindow(struct window* window)
+void window_quit(void)
 {
-    assert(window);
-
-    SDL_DestroyWindow(window->sdl_window);
-    window->sdl_window = NULL;
+    SDL_DestroyWindow(sdl_window);
+    sdl_window = NULL;
 }
 
-void wbHandleWindowEvents(void)
+void window_handle_events(void)
 {
     SDL_PumpEvents();
 
@@ -83,27 +51,20 @@ void wbHandleWindowEvents(void)
     }
 }
 
-void wbWindowGetSize(const struct window* window, uint16_t* width, uint16_t* height)
+void window_get_size(uint16_t* width, uint16_t* height)
 {
-    assert(window);
-    assert(window->sdl_window);
-
     int w, h;
-    SDL_GetWindowSize(window->sdl_window, &w, &h);
+    SDL_GetWindowSize(sdl_window, &w, &h);
     *width = w;
     *height = h;
 }
 
-void wbWindowSetTitle(const struct window* window, const char* title)
+void window_set_title(const char* title)
 {
-    assert(window);
-
-    SDL_SetWindowTitle(window->sdl_window, title);
+    SDL_SetWindowTitle(sdl_window, title);
 }
 
-struct SDL_Window* wbSdlWindow(const struct window* window)
+inline SDL_Window* window_get_sdl_window(void)
 {
-    assert(window);
-
-    return window->sdl_window;
+    return sdl_window;
 }

@@ -9,7 +9,7 @@ file_t io_file_size(const char* file_name, uint32_t* file_size, bool close)
     if (!file)
     {
         log_error("Failed to open file: %s", file_name);
-        return;
+        return NULL;
     }
 
     fseek(file, 0, SEEK_END);
