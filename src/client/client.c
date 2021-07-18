@@ -2,11 +2,11 @@
 #include "renderer.h"
 #include "input.h"
 #include "image.h"
+#include "font.h"
 #include "../base/base.h"
 #include "../base/time.inl"
 #include "../base/config.h"
 #include <SDL2/SDL_events.h>
-#include <assert.h>
 
 struct config* c_quit;
 
@@ -59,12 +59,17 @@ int main(int argc, char* argv[])
     char title[128];
     uint64_t last_tick = time_now();
 
-    image_t test_image = {0};
-    image_load("../assets/images/sides/dwarves/ADBX.png", IMAGE_LOAD_TRANSPARENT, &test_image);
+    font_t arial_32;
+    font_load("arial_32", &arial_32);
 
-    sprite_t test_sprite = renderer_add_sprite(&test_image);
+    renderer_add_text(&arial_32, 40, 80, "Yo whatsup nigga!");
 
-    assert(test_image.sdl_surface == NULL);
+    //image_t test_image = {0};
+    //image_load("../assets/images/sides/dwarves/ADBX.png", IMAGE_LOAD_TRANSPARENT, &test_image);
+
+    //texture_t test_sprite = renderer_add_sprite(&test_image);
+
+    //assert(test_image.sdl_surface == NULL);
 
     while (!c_quit->bool_value)
     {
@@ -87,7 +92,7 @@ int main(int argc, char* argv[])
 
     config_save(config_file_name);
 
-    renderer_remove_sprite(test_sprite);
+    //renderer_destroy_texture(test_sprite);
 
     renderer_quit();
     window_quit();

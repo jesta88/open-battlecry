@@ -49,12 +49,10 @@ add_executable(client
     src/client/audio.h
     src/client/camera.c
     src/client/camera.h
-    src/client/client.h 
-    src/client/stb_rect_pack.h
-    src/client/stb_truetype.h
+    src/client/client.h
     src/client/font.h
     src/client/font.c
-    src/client/stb.c "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c")
+    "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c")
 
 find_package(SDL2 CONFIG REQUIRED)
 

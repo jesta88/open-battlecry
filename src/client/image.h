@@ -5,11 +5,6 @@
 
 typedef struct SDL_Surface SDL_Surface;
 
-enum image_load_flags
-{
-    IMAGE_LOAD_TRANSPARENT = 1 << 0
-};
-
 typedef struct image_t
 {
     SDL_Surface* sdl_surface;
@@ -20,5 +15,5 @@ typedef struct image_t
 } image_t;
 
 void image_init_decoders(void);
-void image_load(const char* file_name, uint8_t flags, image_t* image);
+void image_load(const char* file_name, image_t* image);
 void image_free(image_t* image);

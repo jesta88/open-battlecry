@@ -48,7 +48,7 @@ void image_init_decoders(void)
     wuffs_png__decoder__set_quirk_enabled(&png_decoder, WUFFS_BASE__QUIRK_IGNORE_CHECKSUM, true);
 }
 
-void image_load(const char* file_name, uint8_t flags, image_t* image)
+void image_load(const char* file_name, image_t* image)
 {
     // Input buffer
     uint32_t png_bytes_size;
@@ -83,10 +83,18 @@ void image_load(const char* file_name, uint8_t flags, image_t* image)
     image->height = height;
 
     // Surface
-    bool transparent = is_flag_set(flags, IMAGE_LOAD_TRANSPARENT);
-    uint32_t pixel_format =  transparent ? SDL_PIXELFORMAT_BGRA32 : SDL_PIXELFORMAT_BGR24;
+    wuffs_base__pixel_format wuffs_pixel_format = wuffs_base__pixel_config__pixel_format(&image_config.pixcfg);
+    uint32_t pixel_format = SDL_PIXELFORMAT_BGRA32;
+
+    uint32_t plane_count = wuffs_base__pixel_format__num_planes(&wuffs_pixel_format);
+
+    if (wuffs_pixel_format.repr == WUFFS_BASE__PIXEL_FORMAT__BGR)
+    {
+        pixel_format = SDL_PIXELFORMAT_BGR24;
+    }
+
     SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(
-        0, (int) width, (int) height, transparent ? 32 : 24, pixel_format);
+        0, (int) width, (int) height, (int) plane_count * 8, pixel_format);
     if (!surface)
     {
         log_error("%s", SDL_GetError());
