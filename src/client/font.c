@@ -68,6 +68,8 @@ typedef struct fnt_kerning_t
     int16_t amount;
 } fnt_kerning_t;
 
+
+
 void font_load(const char* name, font_t* font)
 {
     FILE* fnt_file = fopen("../assets/fonts/arial_32.fnt", "rb");
@@ -92,58 +94,32 @@ void font_load(const char* name, font_t* font)
         {
             uint32_t block_size;
             fread(&block_size, sizeof(block_size), 1, fnt_file);
-
-            switch (block_type)
+            if (block_type < 4)
             {
-                case 1:
-                {
-                    fnt_info_t info;
-                    fread(&info, block_size, 1, fnt_file);
-                    break;
-                }
-                case 2:
-                {
-                    fnt_common_t common;
-                    fread(&common, block_size, 1, fnt_file);
-                    break;
-                }
-                case 3:
-                {
-                    fnt_pages_t pages;
-                    fread(&pages, block_size, 1, fnt_file);
-                    break;
-                }
-                case 4:
-                {
-                    const uint32_t char_count = block_size / (uint32_t) sizeof(fnt_char_t);
-                    assert(char_count <= MAX_FONT_GLYPHS);
+                fseek(fnt_file, (int) block_size, SEEK_CUR);
+            }
+            else
+            {
+                const uint32_t char_count = block_size / (uint32_t) sizeof(fnt_char_t);
+                assert(char_count <= MAX_FONT_GLYPHS);
 
-                    font->glyph_count = char_count;
+                font->glyph_count = char_count;
 
-                    fnt_char_t chars[MAX_FONT_GLYPHS];
-                    fread(chars, block_size, 1, fnt_file);
+                fnt_char_t chars[MAX_FONT_GLYPHS];
+                fread(chars, block_size, 1, fnt_file);
 
-                    for (uint32_t i = 0; i < char_count; i++)
-                    {
-                        fnt_char_t* c = &chars[i];
-                        glyph_t* glyph = &font->glyphs[c->id];
-                        glyph->x = c->x;
-                        glyph->y = c->y;
-                        glyph->width = c->width;
-                        glyph->height = c->height;
-                        glyph->x_offset = c->x_offset;
-                        glyph->y_offset = c->y_offset;
-                        glyph->advance = c->advance;
-                    }
-                    break;
-                }
-                case 5:
+                for (uint32_t i = 0; i < char_count; i++)
                 {
-                    break;
+                    fnt_char_t* c = &chars[i];
+                    glyph_t* glyph = &font->glyphs[c->id];
+                    glyph->x = c->x;
+                    glyph->y = c->y;
+                    glyph->width = c->width;
+                    glyph->height = c->height;
+                    glyph->x_offset = c->x_offset;
+                    glyph->y_offset = c->y_offset;
+                    glyph->advance = c->advance;
                 }
-                default:
-                    log_error("Invalid block type.");
-                    return;
             }
         }
     }
