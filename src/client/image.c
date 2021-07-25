@@ -1,5 +1,5 @@
 #include "image.h"
-#include "../base/io.h"
+#include "../base/file.h"
 #include "../base/log.h"
 #include "../base/bits.inl"
 #define WUFFS_CONFIG__MODULES
@@ -52,7 +52,7 @@ void image_load(const char* file_name, image_t* image)
 {
     // Input buffer
     uint32_t png_bytes_size;
-    file_t png_file = io_file_size(file_name, &png_bytes_size, false);
+    file_t png_file = file_size(file_name, &png_bytes_size, false);
 
     // TODO: Use a stack allocator
     uint8_t* png_bytes = malloc(png_bytes_size);
@@ -61,7 +61,7 @@ void image_load(const char* file_name, image_t* image)
         log_error("Failed to allocate memory of size: %i", png_bytes_size);
         return;
     }
-    io_read_file(png_file, &png_bytes_size, png_bytes);
+    file_read(png_file, &png_bytes_size, png_bytes);
 
     wuffs_base__io_buffer io_buffer = wuffs_base__ptr_u8__reader(png_bytes, png_bytes_size, true);
     image->size = png_bytes_size;

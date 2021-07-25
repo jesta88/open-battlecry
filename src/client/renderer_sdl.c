@@ -37,12 +37,14 @@ static texture_t glyph_textures[MAX_GLYPHS];
 static SDL_Rect glyph_frame_rects[MAX_GLYPHS];
 static SDL_Rect glyph_screen_rects[MAX_GLYPHS];
 
-void renderer_init(void)
+void renderer_init(void* window_handle)
 {
+    assert(window_handle);
+
     uint32_t flags = SDL_RENDERER_ACCELERATED;
     if (c_render_vsync->bool_value) flags |= SDL_RENDERER_PRESENTVSYNC;
 
-    sdl_renderer = SDL_CreateRenderer(window_get_sdl_window(), -1, flags);
+    sdl_renderer = SDL_CreateRenderer(window_handle, -1, flags);
     if (sdl_renderer == NULL)
     {
         log_error("%s", SDL_GetError());

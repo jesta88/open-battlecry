@@ -28,12 +28,12 @@ set(BASE_SRC
     src/base/base.h
     src/base/base.c
     src/base/os.h
-    src/base/os.c "src/base/io.h" "src/base/io.c" "src/base/path.h" "src/base/path.c")
+    src/base/os.c "src/base/file.h" "src/base/file.c" "src/base/path.h" "src/base/path.c" src/base/math.inl)
 
 # Game
 add_library(game SHARED
     src/game/game.c
-    src/game/game.h)
+    src/game/game.h src/game/entity.c src/game/entity.h src/game/scene.c src/game/scene.h src/game/unit.c src/game/unit.h src/game/configs.h src/game/game_state.h src/game/command.c src/game/command.h src/game/types.h)
 
 # Client
 add_executable(client
@@ -52,7 +52,7 @@ add_executable(client
     src/client/client.h
     src/client/font.h
     src/client/font.c
-    "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c")
+    "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c" src/client/console.c src/client/console.h)
 
 find_package(SDL2 CONFIG REQUIRED)
 
@@ -75,17 +75,14 @@ if (DEVELOPMENT)
     target_compile_definitions(server PRIVATE DEVELOPMENT)
 endif()
 
-# Copy DLLs to output directory
-#file(GLOB DLL_FILES external/bin/*.dll)
-#foreach(file ${DLL_FILES})
-#    get_filename_component(FILE_NAME ${file} NAME)
-
-#    add_custom_command(
-#            TARGET client
-#            POST_BUILD
-#            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#            ${file}
-#            "$<TARGET_FILE_DIR:client>/${SDL2_LIBRARY_NAME}"
-#            COMMENT "Copying ${FILE_NAME} to output directory"
-#    )
-#endforeach()
+# Editor
+add_executable(editor editor/src/main.c "editor/src/gui.h" "editor/src/gui.c")
+target_link_libraries(editor PRIVATE user32 gdi32 comctl32)
+#target_link_directories(editor PRIVATE editor/lib)
+target_link_options(editor PRIVATE /SUBSYSTEM:WINDOWS)
+#target_link_options(editor PRIVATE /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup)
+#if (MSVC)
+#    target_link_libraries(editor PRIVATE iup.lib gdi32 comdlg32 comctl32 uuid oleaut32 ole32)
+#elseif (MINGW)
+#    target_link_libraries(editor PRIVATE libiup.a gdi32 comdlg32 comctl32 uuid oleaut32 ole32)
+#endif()

@@ -3,6 +3,7 @@
 #include "renderer.h"
 #include "../base/log.h"
 #include "../base/bits.inl"
+#include "../base/string.inl"
 #include <SDL2/SDL_render.h>
 #include <assert.h>
 
@@ -69,13 +70,12 @@ typedef struct fnt_kerning_t
 } fnt_kerning_t;
 
 
-
-void font_load(const char* name, font_t* font)
+void font_load(const char* file_name, font_t* font)
 {
-    FILE* fnt_file = fopen("../assets/fonts/arial_32.fnt", "rb");
+    FILE* fnt_file = fopen(file_name, "rb");
     if (!fnt_file)
     {
-        log_error("Failed to open file: %s", name);
+        log_error("Failed to open file: %s", file_name);
         return;
     }
 
@@ -84,7 +84,7 @@ void font_load(const char* name, font_t* font)
         fread(identifier, 1, sizeof(identifier), fnt_file);
         if (identifier[0] != 66 || identifier[1] != 77 || identifier[2] != 70)
         {
-            log_error("File is not a bmfont file: %s", name);
+            log_error("File is not a bmfont file: %s", file_name);
             return;
         }
     }
@@ -125,8 +125,11 @@ void font_load(const char* name, font_t* font)
     }
     fclose(fnt_file);
 
+    char png_path[256];
+    string_replace(png_path, file_name, ".fnt", "_0.png");
+
     image_t font_image = {0};
-    image_load("../assets/fonts/arial_32_0.png", &font_image);
+    image_load(png_path, &font_image);
 
     font->texture_index = renderer_create_texture(&font_image).index;
 }

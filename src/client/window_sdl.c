@@ -7,7 +7,7 @@
 
 static SDL_Window* sdl_window;
 
-void window_init(const char* title)
+void* window_init(const char* title)
 {
     int32_t position = SDL_WINDOWPOS_UNDEFINED;
 
@@ -26,6 +26,8 @@ void window_init(const char* title)
     {
         log_error("%s", SDL_GetError());
     }
+
+    return sdl_window;
 }
 
 void window_quit(void)
@@ -62,9 +64,4 @@ void window_get_size(uint16_t* width, uint16_t* height)
 void window_set_title(const char* title)
 {
     SDL_SetWindowTitle(sdl_window, title);
-}
-
-inline SDL_Window* window_get_sdl_window(void)
-{
-    return sdl_window;
 }

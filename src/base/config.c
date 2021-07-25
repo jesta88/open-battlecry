@@ -7,25 +7,25 @@
 
 enum
 {
-    WB_MAX_CLIENT_CONFIGS = 128,
-    WB_MAX_SERVER_CONFIGS = 64,
-    WB_MAX_GAME_CONFIGS = 128,
+    MAX_CLIENT_CONFIGS = 128,
+    MAX_SERVER_CONFIGS = 64,
+    MAX_GAME_CONFIGS = 128,
 
     // Private flags
-    WB_CONFIG_INT = 1 << 0,
-    WB_CONFIG_FLOAT = 1 << 1,
-    WB_CONFIG_BOOL = 1 << 2,
-    WB_CONFIG_MODIFIED = 1 << 3,
+    CONFIG_INT = 1 << 0,
+    CONFIG_FLOAT = 1 << 1,
+    CONFIG_BOOL = 1 << 2,
+    CONFIG_MODIFIED = 1 << 3,
 };
 
 static uint8_t client_config_count;
 static uint8_t server_config_count;
 static uint8_t game_config_count;
-static struct config client_configs[WB_MAX_CLIENT_CONFIGS];
-static struct config server_configs[WB_MAX_SERVER_CONFIGS];
-static struct config game_configs[WB_MAX_GAME_CONFIGS];
+static config_t client_configs[MAX_CLIENT_CONFIGS];
+static config_t server_configs[MAX_SERVER_CONFIGS];
+static config_t game_configs[MAX_GAME_CONFIGS];
 
-static struct config* find(uint32_t hash, struct config* configs, uint8_t config_count)
+static config_t* find(uint32_t hash, config_t* configs, uint8_t config_count)
 {
     for (int i = 0; i < config_count; i++)
     {
@@ -35,7 +35,7 @@ static struct config* find(uint32_t hash, struct config* configs, uint8_t config
     return NULL;
 }
 
-static bool findOrAdd(const char* name, struct config** config, uint8_t flags)
+static bool find_or_add(const char* name, config_t** config, uint8_t flags)
 {
     char type = name[0];
     uint32_t hash = hash_string(name);
@@ -73,44 +73,44 @@ static bool findOrAdd(const char* name, struct config** config, uint8_t flags)
     return is_new;
 }
 
-struct config* config_get_int(const char* name, int32_t value, uint8_t flags)
+config_t* config_get_int(const char* name, int32_t value, uint8_t flags)
 {
-    struct config* config = NULL;
-    bool isNew = findOrAdd(name, &config, flags);
+    config_t* config = NULL;
+    bool isNew = find_or_add(name, &config, flags);
     assert(config);
 
     if (isNew)
     {
         config->int_value = value;
-        config->flags |= WB_CONFIG_INT;
+        config->flags |= CONFIG_INT;
     }
     return config;
 }
 
-struct config* config_get_float(const char* name, float value, uint8_t flags)
+config_t* config_get_float(const char* name, float value, uint8_t flags)
 {
-    struct config* config = NULL;
-    bool isNew = findOrAdd(name, &config, flags);
+    config_t* config = NULL;
+    bool isNew = find_or_add(name, &config, flags);
     assert(config != NULL);
 
     if (isNew)
     {
         config->float_value = value;
-        config->flags |= WB_CONFIG_FLOAT;
+        config->flags |= CONFIG_FLOAT;
     }
     return config;
 }
 
-struct config* config_get_bool(const char* name, bool value, uint8_t flags)
+config_t* config_get_bool(const char* name, bool value, uint8_t flags)
 {
-    struct config* config = NULL;
-    bool isNew = findOrAdd(name, &config, flags);
+    config_t* config = NULL;
+    bool isNew = find_or_add(name, &config, flags);
     assert(config != NULL);
 
     if (isNew)
     {
         config->bool_value = value;
-        config->flags |= WB_CONFIG_BOOL;
+        config->flags |= CONFIG_BOOL;
     }
     return config;
 }

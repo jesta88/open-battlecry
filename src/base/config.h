@@ -14,7 +14,7 @@ enum config_flags
     CONFIG_DEPRECATED = 1 << 5,
 };
 
-struct config
+typedef struct config_t
 {
     uint32_t name_hash;
     char name[MAX_CONFIG_NAME_LENGTH];
@@ -25,13 +25,13 @@ struct config
         float float_value;
         bool bool_value;
     };
-};
+} config_t;
 
-_Static_assert(sizeof(struct config) == 32, "config must be 32 bytes.");
+_Static_assert(sizeof(config_t) == 32, "config_t must be 32 bytes.");
 
-struct config* config_get_int(const char* name, int32_t value, uint8_t flags);
-struct config* config_get_float(const char* name, float value, uint8_t flags);
-struct config* config_get_bool(const char* name, bool value, uint8_t flags);
+config_t* config_get_int(const char* name, int32_t value, uint8_t flags);
+config_t* config_get_float(const char* name, float value, uint8_t flags);
+config_t* config_get_bool(const char* name, bool value, uint8_t flags);
 
 void config_load(const char* file_name);
 void config_save(const char* file_name);

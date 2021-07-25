@@ -1,5 +1,6 @@
 #include "window.h"
 #include "renderer.h"
+#include "camera.h"
 #include "input.h"
 #include "image.h"
 #include "font.h"
@@ -8,21 +9,24 @@
 #include "../base/config.h"
 #include <SDL2/SDL_events.h>
 
-struct config* c_quit;
+config_t* c_quit;
 
-struct config* c_window_width;
-struct config* c_window_height;
-struct config* c_window_fullscreen;
-struct config* c_window_borderless;
+config_t* c_window_width;
+config_t* c_window_height;
+config_t* c_window_fullscreen;
+config_t* c_window_borderless;
 
-struct config* c_render_vsync;
-struct config* c_render_scale;
+config_t* c_render_vsync;
+config_t* c_render_scale;
 
-struct config* c_audio_master_volume;
-struct config* c_audio_music_volume;
-struct config* c_audio_sfx_volume;
-struct config* c_audio_voice_volume;
-struct config* c_audio_ambient_volume;
+config_t* c_camera_zoom;
+config_t* c_camera_speed;
+
+config_t* c_audio_master_volume;
+config_t* c_audio_music_volume;
+config_t* c_audio_sfx_volume;
+config_t* c_audio_voice_volume;
+config_t* c_audio_ambient_volume;
 
 static const char* config_file_name = "config.txt";
 
@@ -51,8 +55,8 @@ int main(int argc, char* argv[])
     c_audio_ambient_volume = config_get_float("c_audio_ambient_volume", 1.0f, CONFIG_SAVE);
     c_audio_voice_volume = config_get_float("c_audio_voice_volume", 1.0f, CONFIG_SAVE);
 
-    window_init("Open Battlecry");
-    renderer_init();
+    void* window_handle = window_init("Open Battlecry");
+    renderer_init(window_handle);
 
     image_init_decoders();
 
@@ -60,7 +64,7 @@ int main(int argc, char* argv[])
     uint64_t last_tick = time_now();
 
     font_t arial_32;
-    font_load("arial_32", &arial_32);
+    font_load("../assets/fonts/consolas_20.fnt", &arial_32);
 
     renderer_add_text(&arial_32, 40, 80, "Yo whatsup nigga!");
 

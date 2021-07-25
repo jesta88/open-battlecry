@@ -2,3 +2,4 @@ cmake-build-*
 out/
 .vs/
 .idea/
+*.zip

@@ -8,10 +8,10 @@ typedef struct image_t image_t;
 
 typedef struct { uint16_t index; } texture_t;
 
-extern struct config* c_render_vsync;
-extern struct config* c_render_scale;
+extern struct config_t* c_render_vsync;
+extern struct config_t* c_render_scale;
 
-void renderer_init(void);
+void renderer_init(void* window_handle);
 void renderer_quit(void);
 void renderer_draw(void);
 void renderer_present(void);
