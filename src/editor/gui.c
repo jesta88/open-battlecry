@@ -275,6 +275,18 @@ GuiTab* gui_tab_create(GuiWindow* owner)
     return tab;
 }
 
+GuiLabel* gui_label_create(GuiWindow* owner, const char* text)
+{
+    if (!owner || !owner->handle)
+    {
+        return NULL;
+    }
+    
+    CreateWindow("static", text, WS_VISIBLE | WS_CHILD, 0, 0, 200, 100, owner->handle, NULL, hinstance, NULL);
+
+    return NULL;
+}
+
 static LRESULT CALLBACK window_procedure(HWND handle, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)

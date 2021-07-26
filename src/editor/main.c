@@ -38,5 +38,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
     gui_tab_add_item(tab, "Hero");
     gui_tab_add_item(tab, "Item");
 
+    gui_label_create(window, "BITCHES BE BITCHES!!");
+
     return gui_message_loop();
 }

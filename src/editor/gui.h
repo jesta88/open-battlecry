@@ -7,6 +7,7 @@ typedef struct GuiIcon GuiIcon;
 typedef struct GuiMenu GuiMenu;
 typedef struct GuiControl GuiControl;
 typedef struct GuiTab GuiTab;
+typedef struct GuiLabel GuiLabel;
 
 typedef void (*gui_callback)(void);
 
@@ -42,3 +43,5 @@ GuiControl* gui_menu_add_item(GuiMenu* menu, const char* name, const GuiIcon* ic
 
 GuiTab* gui_tab_create(GuiWindow* owner);
 void    gui_tab_add_item(GuiTab* tab, const char* name);
+
+GuiLabel* gui_label_create(GuiWindow* owner, const char* text);
