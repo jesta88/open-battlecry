@@ -137,8 +137,8 @@ GuiWindow* gui_create_window(GuiWindow* owner, const char* title, int width, int
     GuiWindow* window = &windows[index];
 
     window->handle = CreateWindow("normal", title, WS_OVERLAPPEDWINDOW,
-                                CW_USEDEFAULT, CW_USEDEFAULT, width ? width : CW_USEDEFAULT, height ? height : CW_USEDEFAULT,
-                                owner ? owner->handle : NULL, NULL, NULL, NULL);
+                                  CW_USEDEFAULT, CW_USEDEFAULT, width ? width : CW_USEDEFAULT, height ? height : CW_USEDEFAULT,
+                                  owner ? owner->handle : NULL, NULL, NULL, NULL);
     if (!window->handle)
     {
         return NULL;
@@ -260,9 +260,9 @@ GuiTab* gui_tab_create(GuiWindow* owner)
     RECT client_rect;
     GetClientRect(owner->handle, &client_rect);
     tab->handle = CreateWindowEx(0, WC_TABCONTROL, 0,
-                               TCS_FIXEDWIDTH | WS_CHILD | WS_VISIBLE,
-                               client_rect.left, client_rect.top + 40, client_rect.right, client_rect.bottom,
-                               owner->handle, (HMENU) 8990, hinstance, 0);
+                                 TCS_FIXEDWIDTH | WS_CHILD | WS_VISIBLE,
+                                 client_rect.left, client_rect.top + 40, client_rect.right, client_rect.bottom,
+                                 owner->handle, (HMENU) 8990, hinstance, 0);
     if (!tab->handle)
     {
         return NULL;
@@ -281,7 +281,7 @@ GuiLabel* gui_label_create(GuiWindow* owner, const char* text)
     {
         return NULL;
     }
-    
+
     CreateWindow("static", text, WS_VISIBLE | WS_CHILD, 0, 0, 200, 100, owner->handle, NULL, hinstance, NULL);
 
     return NULL;

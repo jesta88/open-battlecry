@@ -76,6 +76,6 @@ if (DEVELOPMENT)
 endif()
 
 # Editor
-add_executable(editor src/editor/main.c src/editor/gui.h src/editor/gui.c)
+add_executable(editor src/editor/main.c src/editor/gui.h src/editor/gui.c "src/editor/dwrite.h")
 target_link_libraries(editor PRIVATE user32 gdi32 comctl32)
 target_link_options(editor PRIVATE /SUBSYSTEM:WINDOWS)
