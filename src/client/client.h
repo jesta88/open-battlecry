@@ -1,3 +1,5 @@
 #pragma once
 
-extern struct config_t* c_quit;
+typedef struct config_t config_t;
+
+extern config_t* c_quit;

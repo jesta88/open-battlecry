@@ -34,6 +34,6 @@ void log_printf(enum log_type log_type, const char* file_name,
     const char* type = log_type_string[log_type];
     const char* color = log_color[log_type];
 
-    fprintf(file, "%s %s:%s%i (%s) %s\n", type, file_name, color, line, function, buffer);
+    fprintf(file, "%s%s %s:%i (%s) %s%s\n", color, type, file_name, line, function, buffer, log_color[0]);
     fflush(file);
 }

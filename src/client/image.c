@@ -1,7 +1,6 @@
 #include "image.h"
 #include "../base/file.h"
 #include "../base/log.h"
-#include "../base/bits.inl"
 #define WUFFS_CONFIG__MODULES
 #define WUFFS_CONFIG__MODULE__BASE
 #define WUFFS_CONFIG__MODULE__CRC32
@@ -11,7 +10,6 @@
 #define WUFFS_CONFIG__MODULE__PNG
 #define WUFFS_IMPLEMENTATION
 #include "wuffs.c"
-#include <assert.h>
 #include <SDL2/SDL_surface.h>
 
 static wuffs_png__decoder png_decoder;
@@ -24,10 +22,10 @@ static bool check_wuffs_status(wuffs_base__status status)
     }
     if (wuffs_base__status__is_error(&status))
     {
-        log_error(wuffs_base__status__message(&status));
+        log_error("%s", wuffs_base__status__message(&status));
         return false;
     }
-    log_info(wuffs_base__status__message(&status));
+    log_info("%s", wuffs_base__status__message(&status));
     return true;
 }
 
@@ -61,7 +59,7 @@ void image_load(const char* file_name, image_t* image)
         log_error("Failed to allocate memory of size: %i", png_bytes_size);
         return;
     }
-    file_read(png_file, &png_bytes_size, png_bytes);
+    file_read(png_file, png_bytes, png_bytes_size);
 
     wuffs_base__io_buffer io_buffer = wuffs_base__ptr_u8__reader(png_bytes, png_bytes_size, true);
     image->size = png_bytes_size;
@@ -120,7 +118,7 @@ void image_load(const char* file_name, image_t* image)
 
     // Work buffer
     wuffs_base__range_ii_u64 work_buffer_range = wuffs_png__decoder__workbuf_len(&png_decoder);
-    size_t work_buffer_length = work_buffer_range.max_incl;
+    uint32_t work_buffer_length = work_buffer_range.max_incl;
 
     uint8_t* work_buffer_data = malloc(work_buffer_length);
     if (!work_buffer_data)
@@ -154,13 +152,13 @@ void image_free(image_t* image)
 {
     if (!image)
     {
-        log_error("Trying to free a null image.");
+        log_error("%s", "Trying to free a null image.");
         return;
     }
 
     if (!image->sdl_surface)
     {
-        log_error("Trying to free a null SDL surface.");
+        log_error("%s", "Trying to free a null SDL surface.");
         return;
     }
 

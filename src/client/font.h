@@ -4,8 +4,15 @@
 
 enum
 {
-    MAX_FONT_GLYPHS = 256
+    MAX_FONT_GLYPHS = 256,
+    MAX_FONT_KERNINGS = 32
 };
+
+typedef struct kerning_t
+{
+    uint16_t previous_char;
+    int16_t offset;
+} kerning_t;
 
 typedef struct glyph_t
 {
@@ -26,6 +33,7 @@ typedef struct font_t
     uint16_t texture_index;
     uint16_t glyph_count;
     glyph_t glyphs[MAX_FONT_GLYPHS];
+    kerning_t kernings[MAX_FONT_KERNINGS];
 } font_t;
 
 void font_load(const char* name, font_t* font);

@@ -22,13 +22,14 @@ set(BASE_SRC
     src/base/allocator.c
     src/base/stb_sprintf.h
     src/base/stb.c
-    src/base/time.inl
-    src/base/sokol_time.h
-    src/base/sokol.c
-    src/base/base.h
-    src/base/base.c
     src/base/os.h
-    src/base/os.c "src/base/file.h" "src/base/file.c" "src/base/path.h" "src/base/path.c" src/base/math.inl)
+    src/base/os.c 
+    "src/base/file.h" 
+    "src/base/file.c" 
+    "src/base/path.h" 
+    "src/base/path.c" 
+    src/base/math.inl 
+    "src/base/types.h" )
 
 # Game
 add_library(game SHARED
@@ -52,11 +53,12 @@ add_executable(client
     src/client/client.h
     src/client/font.h
     src/client/font.c
-    "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c" src/client/console.c src/client/console.h)
+    "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c" src/client/console.c src/client/console.h src/client/strings.inl "src/client/text.h")
 
-find_package(SDL2 CONFIG REQUIRED)
+find_package(SDL2 REQUIRED)
+find_package(Freetype REQUIRED)
 
-target_link_libraries(client PRIVATE SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(client PRIVATE Freetype SDL2::SDL2 SDL2::SDL2main)
 target_compile_options(client PRIVATE $<$<BOOL:${MSVC}>:/arch:AVX>)
 
 # Server
@@ -76,6 +78,13 @@ if (DEVELOPMENT)
 endif()
 
 # Editor
-add_executable(editor src/editor/main.c src/editor/gui.h src/editor/gui.c "src/editor/dwrite.h")
+add_executable(editor src/c_editor/main.c src/c_editor/gui.h src/c_editor/gui.c)
 target_link_libraries(editor PRIVATE user32 gdi32 comctl32)
 target_link_options(editor PRIVATE /SUBSYSTEM:WINDOWS)
+
+# Output 
+set_target_properties(game client server editor
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}")

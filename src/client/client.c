@@ -1,13 +1,12 @@
+#include "client.h"
 #include "window.h"
 #include "renderer.h"
 #include "camera.h"
 #include "input.h"
 #include "image.h"
 #include "font.h"
-#include "../base/base.h"
-#include "../base/time.inl"
 #include "../base/config.h"
-#include <SDL2/SDL_events.h>
+#include <SDL2/SDL.h>
 
 config_t* c_quit;
 
@@ -28,15 +27,89 @@ config_t* c_audio_sfx_volume;
 config_t* c_audio_voice_volume;
 config_t* c_audio_ambient_volume;
 
+static SDL_Window* window;
+
 static const char* config_file_name = "config.txt";
 
-static void handle_mouse_events(void);
-static void handle_keyboard_events(void);
+static void load_configs(void);
+static void create_window(void);
 
 int main(int argc, char* argv[])
 {
-    base_init();
+    SDL_Init(SDL_INIT_VIDEO);
 
+    load_configs();
+    create_window();
+    renderer_init(window);
+    image_init_decoders();
+
+    font_t arial_32;
+    font_load("../../assets/fonts/consolas_20.fnt", &arial_32);
+
+    renderer_add_text(&arial_32, 40, 80, "Yo whatsup!");
+
+    //image_t test_image = {0};
+    //image_load("../assets/images/sides/dwarves/ADBX.png", IMAGE_LOAD_TRANSPARENT, &test_image);
+
+    //texture_t test_sprite = renderer_add_sprite(&test_image);
+
+    //assert(test_image.sdl_surface == NULL);
+
+    char title[128];
+    uint64_t last_tick = SDL_GetPerformanceCounter();
+
+    while (!c_quit->bool_value)
+    {
+        SDL_PumpEvents();
+
+        // Window Events
+        {
+            SDL_Event events[8];
+            const int count = SDL_PeepEvents(events, 8, SDL_GETEVENT, SDL_QUIT, SDL_SYSWMEVENT);
+
+            for (int i = 0; i < count; i++)
+            {
+                SDL_Event* event = &events[i];
+                if (event->type == SDL_QUIT)
+                {
+                    c_quit->bool_value = true;
+                }
+            }
+        }
+
+        c_handle_input_events();
+
+        // Update
+
+        // Render
+        renderer_draw();
+        renderer_present();
+
+        // Stats
+        uint64_t dt = 0;
+        uint64_t tick = SDL_GetPerformanceCounter();
+        dt = tick - last_tick;
+        last_tick = tick;
+        double ms = (dt * 1000.0) / SDL_GetPerformanceFrequency();
+        sprintf(title, "Open Battlecry - %.2f ms", ms);
+
+        SDL_SetWindowTitle(window, title);
+    }
+
+    config_save(config_file_name);
+
+    //renderer_destroy_texture(test_sprite);
+
+    renderer_quit();
+
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
+    return 0;
+}
+
+static void load_configs(void)
+{
     config_load(config_file_name);
 
     c_quit = config_get_bool("c_quit", false, 0);
@@ -54,52 +127,25 @@ int main(int argc, char* argv[])
     c_audio_sfx_volume = config_get_float("c_audio_sfx_volume", 1.0f, CONFIG_SAVE);
     c_audio_ambient_volume = config_get_float("c_audio_ambient_volume", 1.0f, CONFIG_SAVE);
     c_audio_voice_volume = config_get_float("c_audio_voice_volume", 1.0f, CONFIG_SAVE);
+}
 
-    void* window_handle = window_init("Open Battlecry");
-    renderer_init(window_handle);
+static void create_window(void)
+{
+    int32_t position = SDL_WINDOWPOS_UNDEFINED;
 
-    image_init_decoders();
+    bool borderless = c_window_borderless->bool_value;
+    bool fullscreen = c_window_fullscreen->bool_value;
 
-    char title[128];
-    uint64_t last_tick = time_now();
+    uint32_t flags = SDL_WINDOW_ALLOW_HIGHDPI;
+    if (fullscreen && borderless) flags |= SDL_WINDOW_BORDERLESS | SDL_WINDOW_FULLSCREEN_DESKTOP;
+    else if (fullscreen) flags |= SDL_WINDOW_FULLSCREEN;
 
-    font_t arial_32;
-    font_load("../assets/fonts/consolas_20.fnt", &arial_32);
+    window = SDL_CreateWindow(
+        "Open Battlecry", position, position,
+        c_window_width->int_value, c_window_height->int_value, flags);
 
-    renderer_add_text(&arial_32, 40, 80, "Yo whatsup nigga!");
-
-    //image_t test_image = {0};
-    //image_load("../assets/images/sides/dwarves/ADBX.png", IMAGE_LOAD_TRANSPARENT, &test_image);
-
-    //texture_t test_sprite = renderer_add_sprite(&test_image);
-
-    //assert(test_image.sdl_surface == NULL);
-
-    while (!c_quit->bool_value)
+    if (window == NULL)
     {
-        // Events
-        window_handle_events();
-        c_handle_input_events();
-
-        // Update
-
-        // Render
-        renderer_draw();
-        renderer_present();
-
-        // Stats
-        uint64_t frame_ticks = time_since(&last_tick);
-        sprintf(title, "Open Battlecry - %.2f ms", time_ms(frame_ticks));
-
-        window_set_title(title);
+        log_error("%s", SDL_GetError());
     }
-
-    config_save(config_file_name);
-
-    //renderer_destroy_texture(test_sprite);
-
-    renderer_quit();
-    window_quit();
-
-    return 0;
 }

@@ -5,9 +5,19 @@
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_events.h>
 
-static SDL_Window* sdl_window;
+enum
+{
+    MAX_WINDOWS = 8
+};
 
-void* window_init(const char* title)
+struct window_t
+{
+    SDL_Window* handle;
+};
+
+static window_t windows[MAX_WINDOWS];
+
+window_t* window_create(const char* title)
 {
     int32_t position = SDL_WINDOWPOS_UNDEFINED;
 
@@ -30,10 +40,12 @@ void* window_init(const char* title)
     return sdl_window;
 }
 
-void window_quit(void)
+void window_destroy(window_t* window)
 {
-    SDL_DestroyWindow(sdl_window);
-    sdl_window = NULL;
+    if (!window)
+        return;
+    SDL_DestroyWindow(window->handle);
+    window->handle = NULL;
 }
 
 void window_handle_events(void)

@@ -2,6 +2,7 @@
 #include "window.h"
 #include "image.h"
 #include "font.h"
+#include "text.h"
 #include "../base/math.h"
 #include "../base/config.h"
 #include "../base/log.h"
@@ -13,6 +14,11 @@ enum
     MAX_TEXTURES = 1024,
     MAX_SPRITES = 2048,
     MAX_GLYPHS = 2048
+};
+
+struct texture_t
+{
+    SDL_Texture* texture;
 };
 
 static SDL_Renderer* sdl_renderer;
@@ -37,14 +43,17 @@ static texture_t glyph_textures[MAX_GLYPHS];
 static SDL_Rect glyph_frame_rects[MAX_GLYPHS];
 static SDL_Rect glyph_screen_rects[MAX_GLYPHS];
 
-void renderer_init(void* window_handle)
+void renderer_init(SDL_Window* window)
 {
-    assert(window_handle);
+    if (!window)
+    {
+        log_error("%s", "Window is null.");
+    }
 
     uint32_t flags = SDL_RENDERER_ACCELERATED;
     if (c_render_vsync->bool_value) flags |= SDL_RENDERER_PRESENTVSYNC;
 
-    sdl_renderer = SDL_CreateRenderer(window_handle, -1, flags);
+    sdl_renderer = SDL_CreateRenderer(window, -1, flags);
     if (sdl_renderer == NULL)
     {
         log_error("%s", SDL_GetError());
@@ -176,13 +185,13 @@ texture_t renderer_create_texture(image_t* image)
 {
     if (texture_count >= MAX_TEXTURES)
     {
-        log_error("Max textures reached.");
+        log_error("%s", "Max textures reached.");
         return (texture_t) {UINT16_MAX};
     }
 
     if (image == NULL)
     {
-        log_error("Image is null.");
+        log_error("%s", "Image is null.");
         return (texture_t) {UINT16_MAX};
     }
 
@@ -205,7 +214,7 @@ void renderer_destroy_texture(texture_t texture)
 {
     if (texture.index == UINT16_MAX)
     {
-        log_error("Invalid texture.");
+        log_error("%s", "Invalid texture.");
         return;
     }
 
@@ -219,7 +228,7 @@ void renderer_add_text(font_t* font, int16_t x, int16_t y, const char* text)
 {
     if (glyph_count >= MAX_GLYPHS)
     {
-        log_error("Max glyphs reached.");
+        log_error("%s", "Max glyphs reached.");
         return;
     }
 

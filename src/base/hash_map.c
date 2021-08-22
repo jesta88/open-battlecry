@@ -2,7 +2,6 @@
 #include "random.h"
 #include "hash.h"
 #include "log.h"
-#include "time.inl"
 #include <limits.h>
 #include <malloc.h>
 #include <assert.h>
@@ -78,7 +77,8 @@ void wbHashMapInit(hashmap_t* hash_map, uint16_t capacity)
     hash_map->count = 0;
 
     random_t random = {0};
-    random_init(&random, time_now());
+    // TODO: Seed with time
+    random_init(&random, 0);
     hash_map->seed = random_uint(&random);
 
     hash_map->buckets = calloc(capacity, sizeof(hashmap_bucket_t));

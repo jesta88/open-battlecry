@@ -1,16 +1,17 @@
 #pragma once
 
-#include <stdint.h>
+#include "../base/types.h"
 
-typedef struct SDL_Window SDL_Window;
+typedef struct window_t window_t;
+typedef struct config_t config_t;
 
-extern struct config_t* c_window_width;
-extern struct config_t* c_window_height;
-extern struct config_t* c_window_fullscreen;
-extern struct config_t* c_window_borderless;
+extern config_t* c_window_width;
+extern config_t* c_window_height;
+extern config_t* c_window_fullscreen;
+extern config_t* c_window_borderless;
 
-void* window_init(const char* title);
-void window_quit(void);
+window_t* window_create(const char* title);
+void window_destroy(window_t* window);
 void window_handle_events(void);
 
 void window_get_size(uint16_t* width, uint16_t* height);

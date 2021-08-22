@@ -1,9 +1,5 @@
 #pragma once
 
-#define _LINE_TOK(LINE) #LINE
-#define _LINE_TOK2(LINE) _LINE_TOK(LINE)
-#define FILE_LINE "[" __FILE__ ":" _LINE_TOK2(__LINE__) "] "
-
 enum log_type
 {
     LOG_INFO,
@@ -11,13 +7,28 @@ enum log_type
     LOG_ERROR
 };
 
+#ifdef __GNUC__
+void log_printf(enum log_type log_type, const char* file_name,
+                int line, const char* function, const char* format, ...) __attribute__ ((format (printf, 5, 6)));
+#else
 void log_printf(enum log_type log_type, const char* file_name,
                 int line, const char* function, const char* format, ...);
+#endif
 
-#define log_info(...) log_printf(LOG_INFO, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define log_error(...) log_printf(LOG_ERROR, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#ifdef DEBUG
-#define log_debug(...) log_printf(LOG_DEBUG, __FILE__, __LINE__, __func__, __VA_ARGS__)
+#ifdef _MSC_VER
+#define log_info(format, ...) log_printf(LOG_INFO, __FILE__, __LINE__, __func__, format, __VA_ARGS__)
+#define log_error(format, ...) log_printf(LOG_ERROR, __FILE__, __LINE__, __func__, format, __VA_ARGS__)
+#ifndef NDEBUG
+#define log_debug(format, ...) log_printf(LOG_DEBUG, __FILE__, __LINE__, __func__, format, __VA_ARGS__)
 #else
-#define log_debug(...)
+#define log_debug(format, ...)
+#endif
+#else
+#define log_info(format, args...) log_printf(LOG_INFO, __FILE__, __LINE__, __func__, format, ## args)
+#define log_error(format, args...) log_printf(LOG_ERROR, __FILE__, __LINE__, __func__, format, ## args)
+#ifndef NDEBUG
+#define log_debug(format, args...) log_printf(LOG_DEBUG, __FILE__, __LINE__, __func__, format, ## args)
+#else
+#define log_debug(format, args...)
+#endif
 #endif

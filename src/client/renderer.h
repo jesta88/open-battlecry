@@ -1,17 +1,18 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "../base/types.h"
 
 typedef struct font_t font_t;
 typedef struct image_t image_t;
+typedef struct config_t config_t;
+typedef struct texture_t texture_t;
+typedef struct render_target_t render_target_t;
+typedef struct SDL_Window SDL_Window;
 
-typedef struct { uint16_t index; } texture_t;
+extern config_t* c_render_vsync;
+extern config_t* c_render_scale;
 
-extern struct config_t* c_render_vsync;
-extern struct config_t* c_render_scale;
-
-void renderer_init(void* window_handle);
+void renderer_init(SDL_Window* window);
 void renderer_quit(void);
 void renderer_draw(void);
 void renderer_present(void);

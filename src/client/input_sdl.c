@@ -122,6 +122,7 @@ static void handle_keyboard_events(void)
                 bits256_set(&keys_bitset, key);
 
 #ifdef _WIN32
+                // Quit on Alt-F4
                 if (c_key_pressed(C_KEY_F4) && is_flag_set(key_mods, KMOD_LALT))
                 {
                     c_quit->bool_value = true;
