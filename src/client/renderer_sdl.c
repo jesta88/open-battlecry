@@ -48,6 +48,7 @@ void renderer_init(SDL_Window* window)
     if (!window)
     {
         log_error("%s", "Window is null.");
+        return;
     }
 
     uint32_t flags = SDL_RENDERER_ACCELERATED;
