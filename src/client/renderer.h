@@ -12,7 +12,7 @@ typedef struct SDL_Window SDL_Window;
 extern config_t* c_render_vsync;
 extern config_t* c_render_scale;
 
-void renderer_init(SDL_Window* window);
+void renderer_init(void* window_handle);
 void renderer_quit(void);
 void renderer_draw(void);
 void renderer_present(void);

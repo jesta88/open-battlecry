@@ -43,18 +43,18 @@ static texture_t glyph_textures[MAX_GLYPHS];
 static SDL_Rect glyph_frame_rects[MAX_GLYPHS];
 static SDL_Rect glyph_screen_rects[MAX_GLYPHS];
 
-void renderer_init(SDL_Window* window)
+void renderer_init(void* window_handle)
 {
-    if (!window)
+    if (!window_handle)
     {
-        log_error("%s", "Window is null.");
+        log_error("%s", "Window handle is null.");
         return;
     }
 
     uint32_t flags = SDL_RENDERER_ACCELERATED;
     if (c_render_vsync->bool_value) flags |= SDL_RENDERER_PRESENTVSYNC;
 
-    sdl_renderer = SDL_CreateRenderer(window, -1, flags);
+    sdl_renderer = SDL_CreateRenderer((SDL_Window*) window_handle, -1, flags);
     if (sdl_renderer == NULL)
     {
         log_error("%s", SDL_GetError());
@@ -87,7 +87,7 @@ void renderer_draw(void)
     SDL_SetRenderDrawColor(sdl_renderer, 0xA5, 0xB7, 0xA4, 0xFF);
     SDL_RenderClear(sdl_renderer);
 
-    for (int i = 0; i < sprite_count; i++)
+    /*for (int i = 0; i < sprite_count; i++)
     {
         texture_t texture = sprite_textures[i];
         SDL_RenderCopy(sdl_renderer, textures[texture.index], &sprite_frame_rects[i], &sprite_screen_rects[i]);
@@ -97,7 +97,7 @@ void renderer_draw(void)
     {
         texture_t texture = glyph_textures[i];
         SDL_RenderCopy(sdl_renderer, textures[texture.index], &glyph_frame_rects[i], &glyph_screen_rects[i]);
-    }
+    }*/
 
     //    if (bits8_is_set(mouse_pressed_bitset, WB_MOUSE_BUTTON_LEFT))
     //    {
@@ -187,13 +187,13 @@ texture_t renderer_create_texture(image_t* image)
     if (texture_count >= MAX_TEXTURES)
     {
         log_error("%s", "Max textures reached.");
-        return (texture_t) {UINT16_MAX};
+        return (texture_t) { UINT16_MAX };
     }
 
     if (image == NULL)
     {
         log_error("%s", "Image is null.");
-        return (texture_t) {UINT16_MAX};
+        return (texture_t) { UINT16_MAX };
     }
 
     uint32_t texture_index = texture_count++;
@@ -205,10 +205,10 @@ texture_t renderer_create_texture(image_t* image)
     if (!(*texture))
     {
         log_error("%s", SDL_GetError());
-        return (texture_t) {UINT16_MAX};
+        return (texture_t) { UINT16_MAX };
     }
 
-    return (texture_t) {texture_index};
+    return (texture_t) { texture_index };
 }
 
 void renderer_destroy_texture(texture_t texture)
@@ -272,7 +272,7 @@ void renderer_add_text(font_t* font, int16_t x, int16_t y, const char* text)
         screen_rect->w = glyph->width;
         screen_rect->h = glyph->height;
 
-        glyph_textures[glyph_count] = (texture_t) {font->texture_index};
+        glyph_textures[glyph_count] = (texture_t){ font->texture_index };
 
         glyph_count++;
 

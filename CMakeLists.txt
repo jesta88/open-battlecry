@@ -53,7 +53,7 @@ add_executable(client
     src/client/client.h
     src/client/font.h
     src/client/font.c
-    "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c" src/client/console.c src/client/console.h src/client/strings.inl "src/client/text.h")
+    "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c" src/client/console.c src/client/console.h src/client/strings.inl "src/client/text.h" "src/client/graphics.h" "src/client/graphics_sdl.c")
 
 find_package(SDL2 REQUIRED)
 find_package(Freetype REQUIRED)
