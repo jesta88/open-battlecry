@@ -213,7 +213,7 @@ texture_t renderer_create_texture(image_t* image)
 
 void renderer_destroy_texture(texture_t texture)
 {
-    if (texture.index == UINT16_MAX)
+    /*if (texture.index == UINT16_MAX)
     {
         log_error("%s", "Invalid texture.");
         return;
@@ -221,7 +221,7 @@ void renderer_destroy_texture(texture_t texture)
 
     SDL_DestroyTexture(textures[texture.index]);
     textures[texture.index] = NULL;
-    texture_count--;
+    texture_count--;*/
     // TODO: Compact array
 }
 

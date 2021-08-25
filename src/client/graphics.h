@@ -2,6 +2,8 @@
 
 #include "../base/types.h"
 
+typedef struct config_t config_t;
+
 typedef enum
 {
     TEXTURE_USAGE_STATIC,
@@ -19,5 +21,7 @@ typedef struct
     void* data;
 } texture_create_info;
 
-void graphics_init(void);
+extern config_t* c_vsync;
+
+void graphics_init(void* window_handle);
 void graphics_quit(void);
