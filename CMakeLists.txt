@@ -56,9 +56,9 @@ add_executable(client
     "src/client/image.c" "src/client/image.h" "src/client/asset.h" "src/client/asset.c" src/client/console.c src/client/console.h src/client/strings.inl "src/client/text.h" "src/client/graphics.h" "src/client/graphics_sdl.c")
 
 find_package(SDL2 REQUIRED)
-find_package(Freetype REQUIRED)
+find_package(freetype CONFIG REQUIRED)
 
-target_link_libraries(client PRIVATE Freetype SDL2::SDL2 SDL2::SDL2main)
+target_link_libraries(client PRIVATE freetype SDL2::SDL2 SDL2::SDL2main)
 target_compile_options(client PRIVATE $<$<BOOL:${MSVC}>:/arch:AVX>)
 
 # Server
@@ -77,13 +77,17 @@ if (DEVELOPMENT)
     target_compile_definitions(server PRIVATE DEVELOPMENT)
 endif()
 
+# Font baker
+add_executable(font_baker src/tools/font_baker.c)
+target_link_libraries(font_baker PRIVATE freetype)
+
 # Editor
 add_executable(editor src/c_editor/main.c src/c_editor/gui.h src/c_editor/gui.c)
 target_link_libraries(editor PRIVATE user32 gdi32 comctl32)
 target_link_options(editor PRIVATE /SUBSYSTEM:WINDOWS)
 
 # Output 
-set_target_properties(game client server editor
+set_target_properties(game client server editor font_baker
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/lib"
