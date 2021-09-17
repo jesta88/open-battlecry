@@ -77,17 +77,12 @@ if (DEVELOPMENT)
     target_compile_definitions(server PRIVATE DEVELOPMENT)
 endif()
 
-# Font baker
-add_executable(font_baker src/tools/font_baker.c)
-target_link_libraries(font_baker PRIVATE freetype)
-
-# Editor
-add_executable(editor src/c_editor/main.c src/c_editor/gui.h src/c_editor/gui.c)
-target_link_libraries(editor PRIVATE user32 gdi32 comctl32)
-target_link_options(editor PRIVATE /SUBSYSTEM:WINDOWS)
+# Baker
+add_executable(bake src/bake/main.c src/bake/net.h src/bake/net.c src/bake/font_baker.c)
+target_link_libraries(bake PRIVATE freetype)
 
 # Output 
-set_target_properties(game client server editor font_baker
+set_target_properties(game client server bake
     PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE}/lib"

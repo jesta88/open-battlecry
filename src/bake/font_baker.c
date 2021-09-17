@@ -45,7 +45,7 @@ static inline void _usage(const char* argv0)
     exit(0);
 }
 
-int main(int argc, char* argv[])
+int bake(int argc, char* argv[])
 {
     FILE* fp = NULL;
     FT_Face sizeFace, renderFace;
