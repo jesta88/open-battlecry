@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdbool.h>
+#include "../engine/types.h"
 
 enum c_mouse_button
 {

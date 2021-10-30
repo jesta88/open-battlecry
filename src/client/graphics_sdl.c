@@ -1,6 +1,6 @@
 #include "graphics.h"
-#include "../base/log.h"
-#include "../base/config.h"
+#include "../engine/log.h"
+#include "../engine/config.h"
 #include <SDL2/SDL_render.h>
 
 enum

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdint.h>
+#include "../engine/types.h"
 
 typedef struct config_t config_t;
 

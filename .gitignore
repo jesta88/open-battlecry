@@ -1,3 +1,4 @@
+build
 cmake-build-*
 out/
 .vs/
@@ -6,3 +7,4 @@ out/
 /editor/Editor/obj
 /editor/Editor/bin/Debug/net6.0-windows
 /bin/Debug
+

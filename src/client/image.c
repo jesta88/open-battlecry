@@ -1,6 +1,6 @@
 #include "image.h"
-#include "../base/file.h"
-#include "../base/log.h"
+#include "../engine/file.h"
+#include "../engine/log.h"
 #define WUFFS_CONFIG__MODULES
 #define WUFFS_CONFIG__MODULE__BASE
 #define WUFFS_CONFIG__MODULE__CRC32

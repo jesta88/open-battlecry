@@ -3,9 +3,9 @@
 #include "image.h"
 #include "font.h"
 #include "text.h"
-#include "../base/math.h"
-#include "../base/config.h"
-#include "../base/log.h"
+#include "../engine/math.h"
+#include "../engine/config.h"
+#include "../engine/log.h"
 #include <SDL2/SDL_render.h>
 #include <assert.h>
 

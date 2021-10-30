@@ -5,7 +5,7 @@
 #include "input.h"
 #include "image.h"
 #include "font.h"
-#include "../base/config.h"
+#include "../engine/config.h"
 #include <SDL2/SDL.h>
 
 config_t* c_quit;

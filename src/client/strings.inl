@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base/config.h"
+#include "../engine/config.h"
 
 config_t c_language;
 

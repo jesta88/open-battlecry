@@ -1,8 +1,9 @@
 #include "input.h"
 #include "client.h"
-#include "../base/config.h"
-#include "../base/bits.inl"
+#include "../engine/config.h"
+#include "../engine/bits.inl"
 #include <SDL2/SDL_events.h>
+#include <string.h>
 
 enum
 {

@@ -1,7 +1,7 @@
 #include "window.h"
 #include "client.h"
-#include "../base/config.h"
-#include "../base/log.h"
+#include "../engine/config.h"
+#include "../engine/log.h"
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL_events.h>
 

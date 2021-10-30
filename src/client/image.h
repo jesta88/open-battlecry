@@ -1,7 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "../engine/types.h"
 
 typedef struct SDL_Surface SDL_Surface;
 

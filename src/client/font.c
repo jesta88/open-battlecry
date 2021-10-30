@@ -1,11 +1,12 @@
 #include "font.h"
 #include "image.h"
 #include "renderer.h"
-#include "../base/log.h"
-#include "../base/bits.inl"
-#include "../base/string.inl"
+#include "../engine/log.h"
+#include "../engine/bits.inl"
+#include "../engine/string.inl"
 #include <SDL2/SDL_render.h>
 #include <assert.h>
+#include <stdio.h>
 
 enum
 {

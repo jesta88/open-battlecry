@@ -197,7 +197,7 @@ uint16_t wbHashMapGet(hashmap_t* hash_map, const char* key)
 
     /*
 	 * Stop probing if we hit an empty bucket; also, if we hit a
-	 * bucket with PSL lower than the distance from the base location,
+	 * bucket with PSL lower than the distance from the engine location,
 	 * then it means that we found the "rich" bucket which should
 	 * have been captured, if the key was inserted -- see the central
 	 * point of the algorithm in the insertion function.
@@ -264,7 +264,7 @@ uint16_t wbHashMapRemove(hashmap_t* hash_map, const char* key)
 
         /*
 		 * Stop if we reach an empty bucket or hit a key which
-		 * is in its base (original) location.
+		 * is in its engine (original) location.
 		 */
         if (nbucket->key_hash == INVALID_HASH || nbucket->probe_sequence_length == 0)
         {

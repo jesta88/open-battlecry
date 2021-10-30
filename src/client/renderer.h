@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base/types.h"
+#include "../engine/types.h"
 
 typedef struct font_t font_t;
 typedef struct image_t image_t;
