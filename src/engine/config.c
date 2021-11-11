@@ -1,7 +1,7 @@
-#include "config.h"
-#include "hash.h"
-#include "string.inl"
-#include "log.h"
+#include <engine/config.h>
+#include <engine/log.h>
+#include "core/hash.h"
+#include "core/string.inl"
 #include <stdio.h>
 #include <assert.h>
 
@@ -21,11 +21,11 @@ enum
 static uint8_t client_config_count;
 static uint8_t server_config_count;
 static uint8_t game_config_count;
-static config_t client_configs[MAX_CLIENT_CONFIGS];
-static config_t server_configs[MAX_SERVER_CONFIGS];
-static config_t game_configs[MAX_GAME_CONFIGS];
+static struct config client_configs[MAX_CLIENT_CONFIGS];
+static struct config server_configs[MAX_SERVER_CONFIGS];
+static struct config game_configs[MAX_GAME_CONFIGS];
 
-static config_t* find(uint32_t hash, config_t* configs, uint8_t config_count)
+static struct config* find(uint32_t hash, struct config* configs, uint8_t config_count)
 {
     for (int i = 0; i < config_count; i++)
     {
@@ -35,7 +35,7 @@ static config_t* find(uint32_t hash, config_t* configs, uint8_t config_count)
     return NULL;
 }
 
-static bool find_or_add(const char* name, config_t** config, uint8_t flags)
+static bool find_or_add(const char* name, struct config** config, uint8_t flags)
 {
     char type = name[0];
     uint32_t hash = hash_string(name);
@@ -73,9 +73,9 @@ static bool find_or_add(const char* name, config_t** config, uint8_t flags)
     return is_new;
 }
 
-config_t* config_get_int(const char* name, int32_t value, uint8_t flags)
+struct config* config_get_int(const char* name, int32_t value, uint8_t flags)
 {
-    config_t* config = NULL;
+    struct config* config = NULL;
     bool isNew = find_or_add(name, &config, flags);
     assert(config);
 
@@ -87,9 +87,9 @@ config_t* config_get_int(const char* name, int32_t value, uint8_t flags)
     return config;
 }
 
-config_t* config_get_float(const char* name, float value, uint8_t flags)
+struct config* config_get_float(const char* name, float value, uint8_t flags)
 {
-    config_t* config = NULL;
+    struct config* config = NULL;
     bool isNew = find_or_add(name, &config, flags);
     assert(config != NULL);
 
@@ -101,9 +101,9 @@ config_t* config_get_float(const char* name, float value, uint8_t flags)
     return config;
 }
 
-config_t* config_get_bool(const char* name, bool value, uint8_t flags)
+struct config* config_get_bool(const char* name, bool value, uint8_t flags)
 {
-    config_t* config = NULL;
+    struct config* config = NULL;
     bool isNew = find_or_add(name, &config, flags);
     assert(config != NULL);
 

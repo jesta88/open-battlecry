@@ -1,5 +1,5 @@
-#include "log.h"
-#include "stb_sprintf.h"
+#include "engine/log.h"
+#include "../../deps/stb_sprintf.h"
 #include <stdio.h>
 
 static const char* log_type_string[3] = {

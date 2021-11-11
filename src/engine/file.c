@@ -1,5 +1,5 @@
 #include "io.h"
-#include "log.h"
+#include "../../include/engine/log.h"
 #include "file.h"
 #include <Windows.h>
 #include <assert.h>
