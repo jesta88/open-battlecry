@@ -310,7 +310,7 @@ typedef void *          HGDIOBJ;
 #define MB_YESNOCANCEL              0x00000003L
 
 #define MB_ICONEXCLAMATION          0x00000030L
-#define MB_ICONWARNING              0x00000030L
+#define MB_ICOWSARNING              0x00000030L
 #define MB_ICONINFORMATION          0x00000040L
 #define MB_ICONASTERISK             0x00000040L
 #define MB_ICONQUESTION             0x00000020L

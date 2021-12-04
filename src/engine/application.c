@@ -4,7 +4,7 @@
 #include <engine/log.h>
 #include <SDL2/SDL.h>
 
-static struct app_desc app_desc;
+static struct ws_app_desc app_desc;
 
 static SDL_Window* window;
 
@@ -16,35 +16,35 @@ struct config* c_window_borderless;
 
 static const char* config_file_name = "config.txt";
 
-static void load_configs(void);
-static void create_window(void);
-static void handle_window_events(void);
+static void _ws_load_configs(void);
+static void _ws_create_window(void);
+static void _ws_handle_window_events(void);
 
 int main(int argc, char* argv[])
 {
-    app_desc = app_main(argc, argv);
+    ws_app_desc = ws_main(argc, argv);
 
     int result = SDL_Init(SDL_INIT_VIDEO);
     if (result != 0)
         log_error("%s", SDL_GetError());
 
-    load_configs();
-    create_window();
-    image_init_decoders();
+    _ws_load_configs();
+    _ws_create_window();
+    _ws_init_resources();
 
-    app_desc.init();
+    ws_app_desc.init();
 
     float delta_time = 0.005f;
     uint64_t last_tick = SDL_GetPerformanceCounter();
 
     while (!c_quit->bool_value)
     {
-        handle_window_events();
-        handle_input_events();
+        _ws_handle_window_events();
+        _ws_handle_input_events();
 
-        app_desc.update(delta_time);
+        ws_app_desc.update(delta_time);
 
-        app_desc.draw();
+        ws_app_desc.draw();
 
         uint64_t tick = SDL_GetPerformanceCounter();
         uint64_t delta_tick = tick - last_tick;
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 
     config_save(config_file_name);
 
-    app_desc.quit();
+    ws_app_desc.quit();
 
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-static void load_configs(void)
+static void _ws_load_configs(void)
 {
     config_load("config.txt");
 
@@ -83,7 +83,7 @@ static void load_configs(void)
     c_audio_voice_volume = config_get_float("c_audio_voice_volume", 1.0f, CONFIG_SAVE);
 }
 
-static void create_window(void)
+static void _ws_create_window(void)
 {
     const int32_t position = SDL_WINDOWPOS_UNDEFINED;
 
@@ -95,13 +95,13 @@ static void create_window(void)
     else if (fullscreen) flags |= SDL_WINDOW_FULLSCREEN;
 
     window = SDL_CreateWindow(
-            app_desc.app_name, position, position,
+            ws_app_desc.app_name, position, position,
             c_window_width->int_value, c_window_height->int_value, flags);
     if (!window)
         log_error("%s", SDL_GetError());
 }
 
-static void handle_window_events(void)
+static void _ws_handle_window_events(void)
 {
     SDL_PumpEvents();
 

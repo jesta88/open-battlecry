@@ -42,7 +42,7 @@ add_library(engine STATIC
         src/engine/log.c
         include/engine/log.h
         src/engine/core/bits.inl
-        src/engine/core/math.h
+        include/engine/math.h
         src/engine/config.c
         include/engine/config.h
         src/engine/core/hash.c
@@ -81,7 +81,7 @@ add_library(engine STATIC
         src/engine/platform/windows.h
         src/engine/application.c
         include/engine/memory.h
-        include/engine/io.h src/engine/private.h)
+        include/engine/io.h src/engine/private.h include/engine/collections.h src/engine/pool.c include/engine/state.h)
 
 if (SERVER_BUILD)
     message("Server build")
@@ -100,7 +100,7 @@ add_executable(game
         src/game/game.c
         src/game/entity.c
         src/game/entity.h
-        src/game/scene.c
+        src/game/state.c
         src/game/scene.h
         src/game/unit.c
         src/game/unit.h

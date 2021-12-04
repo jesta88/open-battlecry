@@ -30,9 +30,9 @@ void draw(void)
 
 }
 
-struct app_desc app_main(int argc, char* argv[])
+struct ws_app_desc ws_main(int argc, char* argv[])
 {
-    return (struct app_desc){
+    return (struct ws_app_desc){
         .init = init,
         .quit = quit,
         .reload = reload,

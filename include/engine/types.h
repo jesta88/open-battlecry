@@ -25,3 +25,44 @@ typedef unsigned long long uint64_t;
 #define bool  _Bool
 #define false 0
 #define true  1
+
+#define NULL ((void *)0)
+
+typedef struct
+{
+    float x, y;
+} vec2_t;
+
+typedef struct
+{
+    float x, y, z;
+} vec3_t;
+
+typedef struct
+{
+    float x, y, z, w;
+} vec4_t;
+
+typedef struct
+{
+    float xx, xy, xz;
+    float yx, yy, yz;
+} mat23_t;
+
+typedef struct
+{
+    float xx, xy, xz, xw;
+    float yx, yy, yz, yw;
+    float zx, zy, zz, zw;
+    float wx, wy, wz, ww;
+} mat44_t;
+
+typedef struct
+{
+    int x, y;
+} point_t;
+
+typedef struct
+{
+    int x, y, w, h;
+} rect_t;

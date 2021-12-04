@@ -1,24 +1,20 @@
 #ifndef SERVER
+#include <engine/application.h>
 #include <engine/renderer.h>
 #include <engine/config.h>
 #include <engine/log.h>
 #include "../asset/image.h"
 #include "../asset/font.h"
 #include "text.h"
-#include "../core/math.h"
+#include "engine/math.h"
 #include <SDL2/SDL_render.h>
 #include <assert.h>
 
 enum
 {
-    MAX_TEXTURES = 1024,
+    WS_MAX_TEXTURES = 1024,
     MAX_SPRITES = 2048,
     MAX_GLYPHS = 2048
-};
-
-struct texture_t
-{
-    SDL_Texture* texture;
 };
 
 static SDL_Renderer* sdl_renderer;
@@ -31,15 +27,15 @@ static int32_t selection_box_anchor_y;
 static SDL_Rect selection_box_rect;
 
 static uint32_t texture_count;
-static SDL_Texture* textures[MAX_TEXTURES];
+static SDL_Texture* textures[WS_MAX_TEXTURES];
 
 static uint32_t sprite_count;
-static texture_t sprite_textures[MAX_SPRITES];
+static SDL_Texture sprite_textures[MAX_SPRITES];
 static SDL_Rect sprite_frame_rects[MAX_SPRITES];
 static SDL_Rect sprite_screen_rects[MAX_SPRITES];
 
 static uint32_t glyph_count;
-static texture_t glyph_textures[MAX_GLYPHS];
+static SDL_Texture glyph_textures[MAX_GLYPHS];
 static SDL_Rect glyph_frame_rects[MAX_GLYPHS];
 static SDL_Rect glyph_screen_rects[MAX_GLYPHS];
 
@@ -62,7 +58,7 @@ void renderer_init(void* window_handle)
     }
 
     uint16_t screen_width, screen_height;
-    window_get_size(&screen_width, &screen_height);
+    ws_get_window_size(&screen_width, &screen_height);
 
     screen_render_target = SDL_CreateTexture(
         sdl_renderer, SDL_PIXELFORMAT_ABGR32,
@@ -184,16 +180,14 @@ void renderer_present(void)
 
 texture_t renderer_create_texture(image_t* image)
 {
-    if (texture_count >= MAX_TEXTURES)
+    if (texture_count >= WS_MAX_TEXTURES)
     {
         log_error("%s", "Max textures reached.");
-        return (texture_t) { UINT16_MAX };
     }
 
     if (image == NULL)
     {
         log_error("%s", "Image is null.");
-        return (texture_t) { UINT16_MAX };
     }
 
     uint32_t texture_index = texture_count++;
@@ -205,7 +199,6 @@ texture_t renderer_create_texture(image_t* image)
     if (!(*texture))
     {
         log_error("%s", SDL_GetError());
-        return (texture_t) { UINT16_MAX };
     }
 
     return (texture_t) { texture_index };

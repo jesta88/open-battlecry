@@ -44,7 +44,7 @@ static const uint8_t scancode_to_key[] = {
 static void handle_mouse_events(void);
 static void handle_keyboard_events(void);
 
-void handle_input_events(void)
+void _ws_handle_input_events(void)
 {
     handle_keyboard_events();
     handle_mouse_events();

@@ -1,17 +1,13 @@
 #pragma once
 
-#include "math.h"
-
+#include "engine/math.h"
 #include <math.h>
 #include <string.h>
 #include <emmintrin.h>
 #include <immintrin.h>
-
-#ifdef _WIN32
+#if defined(_WIN32)
 #include <intrin.h>
-#endif
-
-#ifdef __clang__
+#elif defined(__clang__)
 #include <avxintrin.h>
 #endif
 
