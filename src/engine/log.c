@@ -1,5 +1,5 @@
-#include "engine/log.h"
-#include "../../deps/stb_sprintf.h"
+#include "log.h"
+#include <stdarg.h>
 #include <stdio.h>
 
 static const char* log_type_string[3] = {
@@ -20,17 +20,17 @@ static const char* log_color[3] = {
 #endif
 };
 
-void log_printf(enum log_type log_type, const char* file_name,
-                int line, const char* function, const char* format, ...)
+void wb_log_printf(wb_log_type log_type, const char* file_name,
+                   int line, const char* function, const char* format, ...)
 {
     char buffer[2048];
 
     va_list args;
     va_start(args, format);
-    stbsp_vsnprintf(buffer, sizeof(buffer) - 1, format, args);
+    vsnprintf(buffer, sizeof(buffer) - 1, format, args);
     va_end(args);
 
-    FILE* file = log_type == LOG_ERROR ? stderr : stdout;
+    FILE* file = log_type == WB_LOG_ERROR ? stderr : stdout;
     const char* type = log_type_string[log_type];
     const char* color = log_color[log_type];
 

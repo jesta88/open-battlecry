@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "../engine/types.h"
 
 enum
 {
@@ -34,7 +34,6 @@ typedef struct health_t
 
 typedef struct game_state_t
 {
-    entity_t entities[MAX_UNITS];
     position_t positions[MAX_UNITS];
     destination_t destinations[MAX_UNITS];
     sprite_t sprites[MAX_UNITS];

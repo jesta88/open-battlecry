@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="engine.c" />
+    <ClCompile Include="config.c" />
+    <ClCompile Include="filesystem.c" />
+    <ClCompile Include="hashmap.c" />
+    <ClCompile Include="input.c" />
+    <ClCompile Include="job.c" />
+    <ClCompile Include="log.c" />
+    <ClCompile Include="memory.c" />
+    <ClCompile Include="random.c" />
+    <ClCompile Include="asset.c" />
+    <ClCompile Include="font.c" />
+    <ClCompile Include="image.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="engine.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="filesystem.h" />
+    <ClInclude Include="hashmap.h" />
+    <ClInclude Include="input.h" />
+    <ClInclude Include="job.h" />
+    <ClInclude Include="log.h" />
+    <ClInclude Include="random.h" />
+    <ClInclude Include="types.h" />
+    <ClInclude Include="windows.h" />
+    <ClInclude Include="xxhash.h" />
+    <ClInclude Include="asset.h" />
+    <ClInclude Include="font.h" />
+    <ClInclude Include="image.h" />
+    <ClInclude Include="wuffs.h" />
+    <ClInclude Include="thread.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bits.inl" />
+    <None Include="string.inl" />
+  </ItemGroup>
+</Project>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "types.h"
+#include "../engine/types.h"
 
 enum command_type
 {
@@ -9,7 +9,6 @@ enum command_type
 
 typedef struct command_move_t
 {
-    entity_t* entities;
     uint32_t entity_count;
     int16_t x, y;
 } command_move_t;

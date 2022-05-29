@@ -1,7 +1,6 @@
-#include <engine/config.h>
-#include <engine/log.h>
-#include "core/hash.h"
-#include "core/string.inl"
+#include "config.h"
+#include "log.h"
+#include "string.inl"
 #include <stdio.h>
 #include <assert.h>
 
@@ -38,7 +37,7 @@ static struct config* find(uint32_t hash, struct config* configs, uint8_t config
 static bool find_or_add(const char* name, struct config** config, uint8_t flags)
 {
     char type = name[0];
-    uint32_t hash = hash_string(name);
+	uint32_t hash = 0;//hash_string(name);
     bool is_new;
 
     switch (type)
@@ -59,13 +58,13 @@ static bool find_or_add(const char* name, struct config** config, uint8_t flags)
             *config = &game_configs[game_config_count++];
             break;
         default:
-            log_error("Invalid config name: %s\n", name);
+            wb_log_error("Invalid config name: %s\n", name);
             return true;
     }
 
     if (is_new)
     {
-        string_copy((*config)->name, name, MAX_CONFIG_NAME_LENGTH);
+		wb_str_copy((*config)->name, name, MAX_CONFIG_NAME_LENGTH);
         (*config)->name_hash = hash;
         (*config)->flags = flags;
     }
@@ -120,7 +119,7 @@ void config_load(const char* file_name)
     FILE* file = fopen(file_name, "r");
     if (file == NULL)
     {
-        log_info("Could not find config file: %s", file_name);
+        wb_log_info("Could not find config file: %s", file_name);
         return;
     }
 
@@ -132,7 +131,7 @@ void config_save(const char* file_name)
     FILE* file = fopen(file_name, "w");
     if (file == NULL)
     {
-        log_error("Failed to open file: %s", file_name);
+		wb_log_error("Failed to open file: %s", file_name);
         return;
     }
 

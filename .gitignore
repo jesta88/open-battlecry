@@ -6,5 +6,8 @@ out/
 *.zip
 /editor/Editor/obj
 /editor/Editor/bin/Debug/net6.0-windows
-/bin/Debug
-
+/bin/
+/src/editor/bin
+/src/editor/obj
+temp
+*.scor*
