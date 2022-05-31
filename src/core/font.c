@@ -14,7 +14,7 @@ enum
 typedef struct fnt_info_t
 {
     int16_t font_size;
-    bits8_t bit_field;
+    wb_bitset8 bit_field;
     uint8_t char_set;
     uint16_t stretch_height;
     uint8_t anti_aliasing;
@@ -35,7 +35,7 @@ typedef struct fnt_common_t
     uint16_t scale_width;
     uint16_t scale_height;
     uint16_t pages;
-    bits8_t bit_field;
+    wb_bitset8 bit_field;
     uint8_t alpha_channel;
     uint8_t red_channel;
     uint8_t green_channel;

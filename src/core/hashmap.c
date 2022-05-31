@@ -79,7 +79,7 @@ void wbHashMapInit(hashmap_t* hash_map, uint16_t capacity)
 
     WbRng random = {0};
     // TODO: Seed with time
-    wb_rand_init(&random, 0);
+    wb_rng_init(&random, 0);
     hash_map->seed = wb_rng_uint(&random);
 
     hash_map->buckets = calloc(capacity, sizeof(hashmap_bucket_t));
@@ -136,7 +136,7 @@ void wbHashMapAdd(hashmap_t* hash_map, const char* key, uint16_t value)
         // Duplicate key
         if (bucket->key_hash == key_hash)
         {
-			log_error("Duplicate hash map key: %s", key);
+			wb_log_error("Duplicate hash map key: %s", key);
             assert(0);
         }
 

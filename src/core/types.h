@@ -9,6 +9,7 @@ typedef unsigned short     uint16_t;
 typedef unsigned int       uint32_t;
 typedef unsigned long long uint64_t;
 
+#ifndef INT32_MAX
 #define INT8_MIN         (-127i8 - 1)
 #define INT16_MIN        (-32767i16 - 1)
 #define INT32_MIN        (-2147483647i32 - 1)
@@ -21,35 +22,38 @@ typedef unsigned long long uint64_t;
 #define UINT16_MAX       0xffffui16
 #define UINT32_MAX       0xffffffffui32
 #define UINT64_MAX       0xffffffffffffffffui64
+#endif
 
+#ifndef bool
 #define bool  _Bool
 #define false 0
 #define true  1
+#endif
 
+#ifndef NULL
 #define NULL ((void *)0)
-
-#define DEFINE_HANDLE(name) typedef struct { uint32_t index; uint32_t version; } name;
+#endif
 
 typedef struct
 {
     float x, y;
-} vec2_t;
+} wb_float2;
 
 typedef struct
 {
     float x, y, z;
-} vec3_t;
+} wb_float3;
 
 typedef struct
 {
     float x, y, z, w;
-} vec4_t;
+} wb_float4;
 
 typedef struct
 {
     float xx, xy, xz;
     float yx, yy, yz;
-} mat23_t;
+} wb_float2x3;
 
 typedef struct
 {
@@ -57,14 +61,14 @@ typedef struct
     float yx, yy, yz, yw;
     float zx, zy, zz, zw;
     float wx, wy, wz, ww;
-} mat44_t;
+} wb_float4x4;
 
 typedef struct
 {
     int x, y;
-} point_t;
+} wb_int2;
 
 typedef struct
 {
     int x, y, w, h;
-} rect_t;
+} wb_rect;
