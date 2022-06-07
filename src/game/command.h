@@ -9,13 +9,13 @@ enum command_type
 
 typedef struct command_move_t
 {
-    uint32_t entity_count;
-    int16_t x, y;
+    u32 entity_count;
+    s16 x, y;
 } command_move_t;
 
 typedef struct command_t
 {
-    uint8_t type;
+    u8 type;
     union
     {
         command_move_t move;

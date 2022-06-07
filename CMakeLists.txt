@@ -4,85 +4,76 @@ project(battlecry LANGUAGES C RC VERSION 0.1.0)
 set(CMAKE_C_STANDARD 23)
 set(ignore ${CMAKE_CXX_COMPILER})
 
-# Freetype
-find_package(freetype CONFIG REQUIRED)
+# Vulkan
+find_package(Vulkan REQUIRED)
 
 # SDL2
-find_package(SDL2 CONFIG REQUIRED)
+add_library(SDL2 SHARED IMPORTED)
+set_target_properties(SDL2 PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/bin/SDL2.dll
+        IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/lib/SDL2.lib
+        INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/include)
+
+add_library(SDL2main STATIC IMPORTED)
+set_target_properties(SDL2main PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/lib/SDL2main.lib
+        INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/include)
+
+# freetype
+add_library(freetype STATIC IMPORTED)
+set_target_properties(freetype PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/freetype/lib/freetype.lib
+        INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/freetype/include)
+
+set (COMMON_SRC
+        src/common/assert.c
+        src/common/asset.c
+        src/common/bits.inl
+        src/common/config.c
+        src/common/engine.c
+        src/common/filesystem.c
+        src/common/font.c
+        src/common/hashmap.c
+        src/common/image.c
+        src/common/input.c
+        src/common/job.c
+        src/common/log.c
+        src/common/memory.c
+        src/common/random.c
+        src/common/string.inl
+        src/common/thread.c
+        src/common/types.h
+        src/common/windows.h)
 
 # Renderer
-add_library(renderer_vk SHARED
-        src/renderer_vk/renderer.c)
+add_library(renderer SHARED
+        src/renderer/renderer.c)
 
-add_library(renderer_sdl SHARED
-        src/renderer_sdl/renderer.c "src/renderer_sdl/renderer.h")
+target_compile_options(renderer PRIVATE /arch:AVX)
+target_link_libraries(renderer PRIVATE SDL2 freetype Vulkan)
 
-# Engine
-add_library(engine STATIC
-        src/engine/application.h
-        src/engine/application.c
-        src/engine/bits.inl
-        src/engine/config.c
-        src/engine/config.h
-        src/engine/filesystem.c
-        src/engine/filesystem.h
-        src/engine/hashmap.h
-        src/engine/hashmap.c
-        src/engine/input.c
-        src/engine/input.h
-        src/engine/job.h
-        src/engine/job.c
-        src/engine/log.c
-        src/engine/log.h
-        src/engine/memory.c
-        src/engine/random.c
-        src/engine/random.h
-        src/engine/string.inl
-        src/engine/types.h
-        src/engine/windows.h
-        src/engine/xxhash.h
-        src/engine/xxhash.c
-        src/engine/asset/font.h
-        src/engine/asset/font.c
-        src/engine/asset/image.c
-        src/engine/asset/image.h
-        src/engine/asset/asset.h
-        src/engine/asset/asset.c
-        src/engine/graphics/renderer_sdl.c
-        src/engine/graphics/graphics_sdl.c
-        src/engine/asset/wuffs.h)
+# Client
+add_executable(client
+        src/client/camera.c
+        src/client/main.c
+        src/client/resource.c)
 
-target_compile_options(engine PUBLIC /arch:AVX)
-target_link_libraries(engine PRIVATE SDL2::SDL2 SDL2::SDL2main freetype)
-if(RENDERER_VK)
-    target_link_libraries(engine PRIVATE renderer_vk)
-else()
-    target_link_libraries(engine PRIVATE renderer_sdl)
-endif()
+target_compile_options(client PRIVATE /arch:AVX)
+target_link_libraries(client PRIVATE SDL2 SDL2main)
 
 # Game
 add_executable(game
-        src/game/game.c
         src/game/entity.c
-        src/game/entity.h
-        src/game/state.c
-        src/game/scene.h
-        src/game/unit.c
-        src/game/unit.h
-        src/game/configs.h
-        src/game/game_state.h
-        src/game/command.c
-        src/game/command.h
-        src/game/types.h)
+        src/game/game.c)
 
 target_link_libraries(game PRIVATE engine)
 
 # Asset converter
-add_executable(asset_converter
-        src/asset_converter/main.c
-        src/asset_converter/xcr.c
-        src/asset_converter/xcr.h
-        src/asset_converter/animation.h
-        src/asset_converter/rle.h)
-target_include_directories(asset_converter PRIVATE src)
-target_link_libraries(asset_converter PRIVATE core)
+#add_executable(asset_converter
+#        src/asset_converter/main.c
+#        src/asset_converter/xcr.c
+#        src/asset_converter/xcr.h
+#        src/asset_converter/animation.h
+#        src/asset_converter/rle.h)
+#target_include_directories(asset_converter PRIVATE src)
+#target_link_libraries(asset_converter PRIVATE core)

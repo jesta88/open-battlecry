@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.c" />
+    <ClCompile Include="graphics_sdl.c" />
+    <ClCompile Include="renderer.c" />
+    <ClCompile Include="resource.c" />
+    <ClCompile Include="camera.c" />
+    <ClCompile Include="texture.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="renderer.h" />
+    <ClInclude Include="graphics.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="client.h" />
+  </ItemGroup>
+</Project>

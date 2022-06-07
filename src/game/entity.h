@@ -9,27 +9,27 @@ enum
 
 typedef struct position_t
 {
-    int16_t x;
-    int16_t y;
-    uint32_t version;
+    s16 x;
+    s16 y;
+    u32 version;
 } position_t;
 
 typedef struct destination_t
 {
-    int16_t x;
-    int16_t y;
+    s16 x;
+    s16 y;
 } destination_t;
 
 typedef struct sprite_t
 {
-    uint16_t texture_id;
-    uint8_t direction;
-    uint8_t frame;
+    u16 texture_id;
+    u8 direction;
+    u8 frame;
 } sprite_t;
 
 typedef struct health_t
 {
-    uint16_t amount;
+    u16 amount;
 } health_t;
 
 typedef struct game_state_t
