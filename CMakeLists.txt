@@ -3,21 +3,10 @@ project(battlecry LANGUAGES C RC VERSION 0.1.0)
 
 set(CMAKE_C_STANDARD 23)
 set(ignore ${CMAKE_CXX_COMPILER})
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # Vulkan
 find_package(Vulkan REQUIRED)
-
-# SDL2
-add_library(SDL2 SHARED IMPORTED)
-set_target_properties(SDL2 PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/bin/SDL2.dll
-        IMPORTED_IMPLIB ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/lib/SDL2.lib
-        INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/include)
-
-add_library(SDL2main STATIC IMPORTED)
-set_target_properties(SDL2main PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/lib/SDL2main.lib
-        INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/SDL2/include)
 
 # freetype
 add_library(freetype STATIC IMPORTED)
@@ -49,17 +38,13 @@ set (COMMON_SRC
 add_library(renderer SHARED
         src/renderer/renderer.c)
 
-target_compile_options(renderer PRIVATE /arch:AVX)
-target_link_libraries(renderer PRIVATE SDL2 freetype Vulkan)
+target_link_libraries(renderer PRIVATE freetype Vulkan)
 
 # Client
 add_executable(client
         src/client/camera.c
         src/client/main.c
         src/client/resource.c)
-
-target_compile_options(client PRIVATE /arch:AVX)
-target_link_libraries(client PRIVATE SDL2 SDL2main)
 
 # Game
 add_executable(game
