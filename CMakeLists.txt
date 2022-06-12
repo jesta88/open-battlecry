@@ -34,17 +34,20 @@ set (COMMON_SRC
         src/common/types.h
         src/common/windows.h)
 
-# Renderer
-add_library(renderer SHARED
-        src/renderer/renderer.c)
-
-target_link_libraries(renderer PRIVATE freetype Vulkan)
-
 # Client
 add_executable(client
         src/client/camera.c
         src/client/main.c
-        src/client/resource.c)
+        src/client/resource.c
+        src/client/graphics.c
+        src/common/log.c
+        src/common/log.h
+        src/third_party/volk.c)
+
+target_link_libraries(client PRIVATE Vulkan::Vulkan)
+if (WIN32)
+target_compile_definitions(client PRIVATE -DVK_USE_PLATFORM_WIN32_KHR)
+endif()
 
 # Game
 add_executable(game

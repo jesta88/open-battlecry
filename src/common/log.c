@@ -20,7 +20,7 @@ static const char* log_color[3] = {
 #endif
 };
 
-void wb_log_printf(wb_log_type log_type, const char* file_name,
+void wbLog(WbLogType log_type, const char* file_name,
                    int line, const char* function, const char* format, ...)
 {
     char buffer[2048];
