@@ -37,6 +37,7 @@ set (COMMON_SRC
 # Client
 add_executable(client
         src/client/camera.c
+        src/client/client.h
         src/client/main.c
         src/client/resource.c
         src/client/graphics.c

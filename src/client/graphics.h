@@ -6,8 +6,10 @@ typedef struct
 {
 	int window_width;
 	int window_height;
-	void* window_handle;
-
+#ifdef _WIN32
+	void* hwnd;
+	void* hinstance;
+#endif
 	bool enable_validation;
 	bool vsync;
 } WbGraphicsDesc;

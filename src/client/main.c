@@ -1,6 +1,7 @@
+#include "client.h"
+#include "graphics.h"
 #include "../common/input.h"
 #include "../common/log.h"
-#include "graphics.h"
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <assert.h>
@@ -30,6 +31,12 @@ static int s_window_height;
 static LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void adjustWindow(HWND hwnd);
 
+void wbGetWindowSize(u32* width, u32* height)
+{
+	*width = (u32)s_window_width;
+	*height = (u32)s_window_height;
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc > 1)
@@ -40,14 +47,14 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	HINSTANCE instance = GetModuleHandle(NULL);
+	HINSTANCE hinstance = GetModuleHandle(NULL);
 	WNDCLASSEX window_class = {
 			.cbSize = sizeof(window_class),
 			.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
 			.lpfnWndProc = windowProc,
 			.cbClsExtra = 0,
 			.cbWndExtra = 0,
-			.hInstance = instance,
+			.hInstance = hinstance,
 			.hIcon = LoadIcon(NULL, IDI_APPLICATION),
 			.hCursor = LoadCursor(NULL, IDC_ARROW),
 			.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH),
@@ -74,15 +81,16 @@ int main(int argc, char* argv[])
 			window_rect.bottom - window_rect.top,
 			0,
 			NULL,
-			instance,
+			hinstance,
 			NULL);
 	assert(hwnd != NULL);
 
 	wbInitGraphics(&(const WbGraphicsDesc) {
 		.enable_validation = true,
-		.window_handle = hwnd,
 		.window_width = 1280,
 		.window_height = 720,
+		.hwnd = hwnd,
+		.hinstance = hinstance,
 		.vsync = false
 	});
 

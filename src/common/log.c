@@ -2,6 +2,15 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#define COLOR_NORMAL  "\x1B[0m"
+#define COLOR_RED     "\x1B[31m"
+#define COLOR_GREEN   "\x1B[32m"
+#define COLOR_YELLOW  "\x1B[33m"
+#define COLOR_BLUE    "\x1B[34m"
+#define COLOR_MAGENTA "\x1B[35m"
+#define COLOR_CYAN    "\x1B[36m"
+#define COLOR_WHITE   "\x1B[37m"
+
 static const char* log_type_string[3] = {
     "[INFO]",
     "[DEBUG]",
@@ -9,15 +18,9 @@ static const char* log_type_string[3] = {
 };
 
 static const char* log_color[3] = {
-#ifdef _WIN32
-    "\x1b[0m",
-    "\x1b[96m",
-    "\x1b[91m"
-#else
-    "\033[0m",
-    "\x1B[36m",
-    "\x1B[31m"
-#endif
+	COLOR_NORMAL,
+	COLOR_CYAN,
+	COLOR_RED
 };
 
 void wbLog(WbLogType log_type, const char* file_name,

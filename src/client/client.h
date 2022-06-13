@@ -13,3 +13,5 @@ typedef enum
 	WB_WINDOW_FULLSCREEN,
 	WB_WINDOW_BORDERLESS
 } WbWindowMode;
+
+void wbGetWindowSize(u32* width, u32* height);
