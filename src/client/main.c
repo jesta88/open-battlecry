@@ -109,6 +109,10 @@ int main(int argc, char* argv[])
 				s_quit = true;
 			}
 		}
+
+		wbBeginFrame();
+
+		wbEndFrame();
 	}
 
 	return 0;

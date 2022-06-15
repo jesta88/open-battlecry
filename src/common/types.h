@@ -12,18 +12,18 @@ typedef u16 f16;
 typedef float f32;
 typedef double f64;
 
-#define S8_MIN (-127i8 - 1)
-#define S16_MIN (-32767i16 - 1)
-#define S32_MIN (-2147483647i32 - 1)
-#define S64_MIN (-9223372036854775807i64 - 1)
-#define S8_MAX 127i8
-#define S16_MAX 32767i16
-#define S32_MAX 2147483647i32
-#define S64_MAX 9223372036854775807i64
-#define U8_MAX 0xffui8
-#define U16_MAX 0xffffui16
-#define U32_MAX 0xffffffffui32
-#define U64_MAX 0xffffffffffffffffui64
+#define S8_MIN (-127 - 1)
+#define S16_MIN (-32767 - 1)
+#define S32_MIN (-2147483647 - 1)
+#define S64_MIN (-9223372036854775807LL - 1)
+#define S8_MAX 127
+#define S16_MAX 32767
+#define S32_MAX 2147483647
+#define S64_MAX 9223372036854775807LL
+#define U8_MAX 255
+#define U16_MAX 65535
+#define U32_MAX 0xffffffffU
+#define U64_MAX 0xffffffffffffffffULL
 
 #ifndef bool
 #define bool _Bool
