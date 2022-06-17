@@ -38,6 +38,13 @@ static VkPipeline s_terrain_pipeline;
 static VkPipeline s_sprite_pipeline;
 static VkPipeline s_ui_pipeline;
 
+static VkDescriptorPool s_descriptor_pool;
+static VkDescriptorSetLayout s_terrain_set_layout;
+
+static VkSampler s_point_sampler;
+
+
+
 static bool s_vsync;
 static u32 s_width;
 static u32 s_height;
@@ -307,7 +314,6 @@ void wbEndFrame(void)
 
 	vkCmdEndRendering(s_primary_command_buffers[s_buffered_frame_index]);
 
-	// TODO: Use synchronization2 instead
 	vkCmdPipelineBarrier(s_primary_command_buffers[s_buffered_frame_index],
 			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
 			VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
@@ -340,24 +346,6 @@ void wbEndFrame(void)
 		.signalSemaphoreCount = 1,
 		.pSignalSemaphores = &s_submit_complete_semaphores[s_buffered_frame_index],
 	}, s_submit_complete_fences[s_buffered_frame_index]);
-//	result = vkQueueSubmit2(s_graphics_queue, 1, &(const VkSubmitInfo2){
-//			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-//			.waitSemaphoreInfoCount = 1,
-//			.pWaitSemaphoreInfos = &(const VkSemaphoreSubmitInfo){
-//					.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-//					.semaphore = s_image_available_semaphores[s_buffered_frame_index],
-//			},
-//			.commandBufferInfoCount = 1,
-//			.pCommandBufferInfos = &(const VkCommandBufferSubmitInfo){
-//					.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-//					.commandBuffer = s_primary_command_buffers[s_buffered_frame_index],
-//			},
-//			.signalSemaphoreInfoCount = 1,
-//			.pSignalSemaphoreInfos = &(const VkSemaphoreSubmitInfo){
-//					.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-//					.semaphore = s_submit_complete_semaphores[s_buffered_frame_index],
-//			},
-//	}, s_submit_complete_fences[s_buffered_frame_index]);
 	assert(result == VK_SUCCESS);
 
 	result = vkQueuePresentKHR(s_graphics_queue, &(const VkPresentInfoKHR){
