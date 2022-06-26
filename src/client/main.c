@@ -2,7 +2,9 @@
 #include "graphics.h"
 #include "../common/input.h"
 #include "../common/log.h"
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #include <assert.h>
 
@@ -86,7 +88,6 @@ int main(int argc, char* argv[])
 	assert(hwnd != NULL);
 
 	wbInitGraphics(&(const WbGraphicsDesc) {
-		.enable_validation = true,
 		.window_width = 1280,
 		.window_height = 720,
 		.hwnd = hwnd,
@@ -110,10 +111,10 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		wbBeginFrame();
-
-		wbEndFrame();
+		wbDraw();
 	}
+
+	wbFreeGraphics();
 
 	return 0;
 }

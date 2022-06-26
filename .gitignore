@@ -11,3 +11,5 @@ out/
 /src/editor/obj
 temp
 *.scor*
+/src/shaders/*.spv
+/src/shaders/*.c

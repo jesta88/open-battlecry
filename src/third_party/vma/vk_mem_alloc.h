@@ -127,6 +127,7 @@ extern "C" {
 #endif
 
 #ifndef VULKAN_H_
+	#error "Define VULKAN_H_ with Volk before including this."
     #include <vulkan/vulkan.h>
 #endif
 
