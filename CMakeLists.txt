@@ -72,6 +72,10 @@ if (WIN32)
 target_compile_definitions(client PRIVATE -DVK_USE_PLATFORM_WIN32_KHR)
 endif()
 
+if (MSVC)
+target_compile_options(client PRIVATE /Zc:preprocessor)
+endif()
+
 # Game
 add_executable(game
         src/game/entity.c

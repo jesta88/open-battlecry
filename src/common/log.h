@@ -16,10 +16,10 @@ void wbLog(WbLogType log_type, const char* file_name,
 #endif
 
 #ifdef _MSC_VER
-#define wbLogInfo(format, ...) wbLog(WB_LOG_INFO, __FILE__, __LINE__, __func__, format, __VA_ARGS__)
-#define wbLogError(format, ...) wbLog(WB_LOG_ERROR, __FILE__, __LINE__, __func__, format, __VA_ARGS__)
+#define wbLogInfo(format, ...) wbLog(WB_LOG_INFO, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
+#define wbLogError(format, ...) wbLog(WB_LOG_ERROR, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
 #ifndef NDEBUG
-#define wbLogDebug(format, ...) wbLog(WB_LOG_DEBUG, __FILE__, __LINE__, __func__, format, __VA_ARGS__)
+#define wbLogDebug(format, ...) wbLog(WB_LOG_DEBUG, __FILE__, __LINE__, __func__, format, ##__VA_ARGS__)
 #else
 #define wbLogDebug(format, ...)
 #endif

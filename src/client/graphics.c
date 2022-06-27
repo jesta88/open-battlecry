@@ -110,7 +110,7 @@ static u32 s_swapchain_image_index;
 
 static u32 s_sprite_count;
 
-static const u32 k_swapchain_format = VK_FORMAT_B8G8R8A8_UNORM;
+static const VkFormat k_swapchain_format = VK_FORMAT_B8G8R8A8_UNORM;
 static const char* k_pipeline_cache_name = "pipeline_cache.bin";
 
 static void createInstance(void);
