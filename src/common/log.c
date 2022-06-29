@@ -11,6 +11,9 @@
 #define COLOR_CYAN    "\x1B[36m"
 #define COLOR_WHITE   "\x1B[37m"
 
+void __stdcall OutputDebugStringA(char* lpOutputString);
+void __stdcall OutputDebugStringW(wchar_t* lpOutputString);
+
 static const char* log_type_string[3] = {
     "[INFO]",
     "[DEBUG]",
@@ -23,20 +26,24 @@ static const char* log_color[3] = {
 	COLOR_RED
 };
 
-void wbLog(WbLogType log_type, const char* file_name,
+void wb_log(WbLogType log_type, const char* file_name,
                    int line, const char* function, const char* format, ...)
 {
     char buffer[2048];
+
+    FILE* file = log_type == WB_LOG_ERROR ? stderr : stdout;
+    const char* type = log_type_string[log_type];
+    const char* color = log_color[log_type];
 
     va_list args;
     va_start(args, format);
     vsnprintf(buffer, sizeof(buffer) - 1, format, args);
     va_end(args);
 
-    FILE* file = log_type == WB_LOG_ERROR ? stderr : stdout;
-    const char* type = log_type_string[log_type];
-    const char* color = log_color[log_type];
+#ifdef _MSC_VER
+    OutputDebugStringA(buffer);
+#endif
 
-    fprintf(file, "%s%s %s:%i (%s) %s%s\n", color, type, file_name, line, function, buffer, log_color[0]);
-    fflush(file);
+    fprintf(file, "%s%s %s:%i (%s) %s%s", color, type, file_name, line, function, buffer, log_color[0]);
+    //fflush(file);
 }

@@ -37,19 +37,22 @@ typedef struct
 
 typedef struct
 {
-	u32 color;
-	u32 texture_index;
-} WbSpriteDesc;
+	float window_width;
+	float window_height;
+	float camera_x;
+	float camera_y;
+} wb_push_constants;
 
-void wbInitGraphics(const WbGraphicsDesc* graphics_desc);
-void wbFreeGraphics(void);
+typedef struct
+{
+    float x, y;
+    float width, height;
+    u32 texture_index;
+    u32 color;
+	u32 _pad0;
+	u32 _pad1;
+} wb_sprite;
 
-void wbDraw(void);
-
-void wb_graphics_set_clear_color(u8 r, u8 g, u8 b, u8 a);
-void wb_graphics_set_render_target(void* render_target);
-void wb_graphics_set_null_render_target(void);
-
-u16 wb_graphics_create_buffer(const WbBufferDesc* buffer_desc);
-u16 wb_graphics_create_texture(const WbTextureDesc* texture_desc);
-u16 wb_graphics_create_render_target(const WbRenderTargetDesc* render_target_desc);
+void wb_graphics_init(const WbGraphicsDesc* graphics_desc);
+void wb_graphics_quit(void);
+void wb_graphics_draw(void);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../engine/types.h"
+#include "../common/types.h"
 
 enum
 {

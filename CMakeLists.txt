@@ -3,19 +3,26 @@ project(battlecry VERSION 0.1.0)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Vulkan
 find_package(Vulkan REQUIRED)
 
 # VMA
-add_library(vma src/third_party/vma/vk_mem_alloc.cpp)
+add_library(vma STATIC 
+    src/third_party/volk.h
+    src/third_party/vma/vk_mem_alloc.h
+    src/third_party/vma/vk_mem_alloc.cpp)
+
 target_include_directories(vma PUBLIC src/third_party/vma)
-target_link_libraries(vma PUBLIC Vulkan::Headers)
-target_compile_definitions(vma
-    PUBLIC
-        $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN>
+
+target_link_libraries(vma 
     PRIVATE
-        $<$<PLATFORM_ID:Windows>:VK_USE_PLATFORM_WIN32_KHR>
+        Vulkan::Headers)
+
+target_compile_definitions(vma
+    PRIVATE
+        $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN VK_USE_PLATFORM_WIN32_KHR>
         $<$<PLATFORM_ID:Linux>:VK_USE_PLATFORM_XCB_KHR VK_USE_PLATFORM_XCB_XRANDR_EXT>)
 
 # freetype
@@ -52,9 +59,10 @@ add_dependencies(shaders bintoc)
 
 # Client
 add_executable(client
+        WIN32
         src/client/camera.c
         src/client/client.h
-        src/client/main.c
+        src/client/client.c
         src/client/resource.c
         src/client/graphics.c
         src/common/log.c
@@ -65,30 +73,23 @@ add_executable(client
         src/shaders/sprite.frag.c)
 
 add_dependencies(client shaders)
+
+target_compile_definitions(client
+    PRIVATE
+        $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS VK_USE_PLATFORM_WIN32_KHR>
+        $<$<PLATFORM_ID:Linux>:VK_USE_PLATFORM_XCB_KHR VK_USE_PLATFORM_XCB_XRANDR_EXT>
+)
 target_link_libraries(client PRIVATE Vulkan::Headers vma)
-set_target_properties(client PROPERTIES
-        LINKER_LANGUAGE C)
-if (WIN32)
-target_compile_definitions(client PRIVATE -DVK_USE_PLATFORM_WIN32_KHR)
-endif()
+set_target_properties(client PROPERTIES LINKER_LANGUAGE C)
 
 if (MSVC)
-target_compile_options(client PRIVATE /Zc:preprocessor)
+target_compile_options(client PRIVATE /nologo /GS- /std:c17 /Zc:preprocessor /fp:fast /arch:AVX)
 endif()
 
-# Game
-add_executable(game
-        src/game/entity.c
-        src/game/game.c)
-
-target_link_libraries(game PRIVATE engine)
-
 # Asset converter
-#add_executable(asset_converter
-#        src/asset_converter/main.c
-#        src/asset_converter/xcr.c
-#        src/asset_converter/xcr.h
-#        src/asset_converter/animation.h
-#        src/asset_converter/rle.h)
-#target_include_directories(asset_converter PRIVATE src)
-#target_link_libraries(asset_converter PRIVATE core)
+add_executable(asset_converter
+        src/asset_converter/main.c
+        src/asset_converter/xcr.c
+        src/asset_converter/xcr.h
+        src/asset_converter/animation.h
+        src/asset_converter/rle.h)
