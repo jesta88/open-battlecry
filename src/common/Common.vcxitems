@@ -17,7 +17,6 @@
     <ClCompile Include="$(MSBuildThisFileDirectory)assert.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)asset.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)config.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)engine.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)filesystem.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)font.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)hashmap.c" />
@@ -33,7 +32,6 @@
     <ClInclude Include="$(MSBuildThisFileDirectory)assert.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)asset.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)config.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)engine.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)filesystem.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)font.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)hashmap.h" />
