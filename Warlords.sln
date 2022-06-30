@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31611.283
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Editor", "src\editor\Editor.csproj", "{D5257BEA-8D73-41D2-BE17-513EE4075C14}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameClient", "src\client\GameClient.vcxproj", "{FA9E8173-7918-49F0-BAC7-C9E54A47E19A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "src\core\Core.vcxproj", "{2CBBE136-FD93-49FD-A7E1-8C10B29FCC85}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Game", "src\game\Game.vcxproj", "{CE5B3C48-D1EC-4ABC-A173-6CFC7530937E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameClient", "src\game_client\GameClient.vcxproj", "{FA9E8173-7918-49F0-BAC7-C9E54A47E19A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanMemoryAllocator", "src\third_party\vma\VulkanMemoryAllocator.vcxproj", "{A08941A9-F22F-4388-A21E-70AA563126D0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Game", "src\Game\Game.vcxproj", "{CE5B3C48-D1EC-4ABC-A173-6CFC7530937E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shaders", "src\shaders\Shaders.vcxitems", "{A688B2D7-4326-4F14-BACF-1EF3EADBB6BD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "src\common\Common.vcxitems", "{49387066-C652-4924-AC18-2857E937E1C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,16 +19,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D5257BEA-8D73-41D2-BE17-513EE4075C14}.Debug|x64.ActiveCfg = Debug|x64
-		{D5257BEA-8D73-41D2-BE17-513EE4075C14}.Debug|x64.Build.0 = Debug|x64
-		{D5257BEA-8D73-41D2-BE17-513EE4075C14}.Debug|x64.Deploy.0 = Debug|x64
-		{D5257BEA-8D73-41D2-BE17-513EE4075C14}.Release|x64.ActiveCfg = Release|x64
-		{D5257BEA-8D73-41D2-BE17-513EE4075C14}.Release|x64.Build.0 = Release|x64
-		{D5257BEA-8D73-41D2-BE17-513EE4075C14}.Release|x64.Deploy.0 = Release|x64
-		{2CBBE136-FD93-49FD-A7E1-8C10B29FCC85}.Debug|x64.ActiveCfg = Debug|x64
-		{2CBBE136-FD93-49FD-A7E1-8C10B29FCC85}.Debug|x64.Build.0 = Debug|x64
-		{2CBBE136-FD93-49FD-A7E1-8C10B29FCC85}.Release|x64.ActiveCfg = Release|x64
-		{2CBBE136-FD93-49FD-A7E1-8C10B29FCC85}.Release|x64.Build.0 = Release|x64
 		{FA9E8173-7918-49F0-BAC7-C9E54A47E19A}.Debug|x64.ActiveCfg = Debug|x64
 		{FA9E8173-7918-49F0-BAC7-C9E54A47E19A}.Debug|x64.Build.0 = Debug|x64
 		{FA9E8173-7918-49F0-BAC7-C9E54A47E19A}.Release|x64.ActiveCfg = Release|x64
@@ -35,11 +27,21 @@ Global
 		{CE5B3C48-D1EC-4ABC-A173-6CFC7530937E}.Debug|x64.Build.0 = Debug|x64
 		{CE5B3C48-D1EC-4ABC-A173-6CFC7530937E}.Release|x64.ActiveCfg = Release|x64
 		{CE5B3C48-D1EC-4ABC-A173-6CFC7530937E}.Release|x64.Build.0 = Release|x64
+		{A08941A9-F22F-4388-A21E-70AA563126D0}.Debug|x64.ActiveCfg = Debug|x64
+		{A08941A9-F22F-4388-A21E-70AA563126D0}.Debug|x64.Build.0 = Debug|x64
+		{A08941A9-F22F-4388-A21E-70AA563126D0}.Release|x64.ActiveCfg = Release|x64
+		{A08941A9-F22F-4388-A21E-70AA563126D0}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {61F7FB11-1E47-470C-91E2-47F8143E1572}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\common\Common.vcxitems*{49387066-c652-4924-ac18-2857e937e1c4}*SharedItemsImports = 9
+		src\shaders\Shaders.vcxitems*{a688b2d7-4326-4f14-bacf-1ef3eadbb6bd}*SharedItemsImports = 9
+		src\common\Common.vcxitems*{fa9e8173-7918-49f0-bac7-c9e54a47e19a}*SharedItemsImports = 4
+		src\shaders\Shaders.vcxitems*{fa9e8173-7918-49f0-bac7-c9e54a47e19a}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal

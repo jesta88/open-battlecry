@@ -1,7 +1,8 @@
 #include "xcr.h"
-#include <core/log.h>
-#include <core/filesystem.h>
-#include <core/string.inl>
+#include "../common/log.h"
+#include "../common/memory.h"
+#include "../common/filesystem.h"
+#include "../common/string.inl"
 #include <string.h>
 #include <malloc.h>
 
@@ -10,18 +11,18 @@ static const char* xcr_id = "xcr File 1.00";
 typedef struct
 {
 	char identifier[20];
-	int32_t resource_count;
-	uint32_t file_size;
+	s32 resource_count;
+	u32 file_size;
 } wb_xcr_header;
 
 typedef struct
 {
 	char file_name[256];
 	char full_path[256];
-	uint32_t offset;
-	uint32_t file_size;
-	int32_t file_type;
-	uint32_t crc_block;
+	u32 offset;
+	u32 file_size;
+	s32 file_type;
+	u32 crc_block;
 	bool crc_check;
 	bool encrypted;
 } wb_xcr_resource_header;
@@ -42,7 +43,7 @@ typedef enum
 typedef struct
 {
 	int offset;
-	uint8_t type;
+	u8 type;
 	char name[59];
 } wb_xcr_resource;
 
@@ -58,11 +59,7 @@ wb_xcr* wb_xcr_load(const char* path)
 	if (!xcr)
 		return NULL;
 
-	if (wb_file_map(path, &xcr->mapping) != 0)
-	{
-		free(xcr);
-		return NULL;
-	}
+	wb_memory_map(path, &xcr->mapping);
 
 	uintptr_t current_ptr = (uintptr_t)xcr->mapping.data;
 
@@ -114,7 +111,7 @@ wb_xcr* wb_xcr_load(const char* path)
 //	_mkdir(out_dir);
 
 	// Process resources
-//    for (uint32_t i = 0; i < image_count; i++) {
+//    for (u32 i = 0; i < image_count; i++) {
 //        process_rle(i, snake_xcr_name);
 //    }
 
@@ -125,6 +122,6 @@ void wb_xcr_unload(wb_xcr* xcr)
 {
 	if (xcr == NULL)
 		return;
-	wb_file_unmap(&xcr->mapping);
+	wb_memory_unmap(&xcr->mapping);
 	free(xcr);
 }

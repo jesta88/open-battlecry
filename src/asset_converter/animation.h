@@ -1,41 +1,35 @@
 #pragma once
 
-#include <core/types.h>
+#include "../common/types.h"
 
 typedef enum
 {
-    ANIMATION_TYPE_STAND,
-    ANIMATION_TYPE_WALK,
-    ANIMATION_TYPE_FIGHT,
-    ANIMATION_TYPE_DIE,
-    ANIMATION_TYPE_AMBIENT,
-    ANIMATION_TYPE_SPECIAL,
-    ANIMATION_TYPE_CONVERT,
-    ANIMATION_TYPE_SPELL,
-    ANIMATION_TYPE_INTERFACE,
-    ANIMATION_TYPE_COUNT
-} animation_type_t;
+    WB_ANIMATION_TYPE_STAND,
+    WB_ANIMATION_TYPE_WALK,
+    WB_ANIMATION_TYPE_FIGHT,
+    WB_ANIMATION_TYPE_DIE,
+    WB_ANIMATION_TYPE_AMBIENT,
+    WB_ANIMATION_TYPE_SPECIAL,
+    WB_ANIMATION_TYPE_CONVERT,
+    WB_ANIMATION_TYPE_SPELL,
+    WB_ANIMATION_TYPE_INTERFACE,
+    WB_ANIMATION_TYPE_COUNT
+} wb_animation_type;
 
 typedef struct
 {
     bool used;
-    uint8_t frame_count;
-    uint8_t effects[2];
-    int16_t origin_x;
-    int16_t origin_y;
-    int16_t width;
-    int16_t height;
-    int16_t effect_origin_x;
-    int16_t effect_origin_y;
-    int16_t selection_origin_x;
-    int16_t selection_origin_y;
-    int16_t selection_sie;
-    int16_t effect_type;
-    int16_t effect_activation;
-} animation_t;
-
-typedef struct
-{
-    animation_t animations[ANIMATION_TYPE_COUNT];
-} animation_data_t;
-
+    u8 frame_count;
+    u8 effects[2];
+    s16 origin_x;
+    s16 origin_y;
+    s16 width;
+    s16 height;
+    s16 effect_origin_x;
+    s16 effect_origin_y;
+    s16 selection_origin_x;
+    s16 selection_origin_y;
+    s16 selection_sie;
+    s16 effect_type;
+    s16 effect_activation;
+} wb_animation;

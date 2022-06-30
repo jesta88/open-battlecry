@@ -92,4 +92,17 @@ add_executable(asset_converter
         src/asset_converter/xcr.c
         src/asset_converter/xcr.h
         src/asset_converter/animation.h
-        src/asset_converter/rle.h)
+        src/asset_converter/rle.h
+        src/common/types.h
+        src/common/log.h
+        src/common/log.c
+        src/common/filesystem.h
+        src/common/filesystem.c
+        src/common/memory.h
+        src/common/memory.c
+        src/common/windows_base.h
+        src/common/windows_file.h
+        src/common/windows_io.h
+        src/common/windows_misc.h
+        src/third_party/tinyfiledialogs/tinyfiledialogs.c "src/asset_converter/rle.c" "src/third_party/ktx/ktx.h" "src/third_party/ktx/ktxvulkan.h")
+set_target_properties(asset_converter PROPERTIES LINKER_LANGUAGE C)

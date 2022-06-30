@@ -9,7 +9,7 @@
 #define VULKAN_H_
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 0
-#include "vk_mem_alloc.h"
+#include "../third_party/vma/vk_mem_alloc.h"
 
 #include <assert.h>
 #include <float.h>

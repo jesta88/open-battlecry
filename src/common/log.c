@@ -44,6 +44,6 @@ void wb_log(WbLogType log_type, const char* file_name,
     OutputDebugStringA(buffer);
 #endif
 
-    fprintf(file, "%s%s %s:%i (%s) %s%s", color, type, file_name, line, function, buffer, log_color[0]);
+    fprintf(file, "%s%s %s:%i (%s) %s%s\n", color, type, file_name, line, function, buffer, log_color[0]);
     //fflush(file);
 }

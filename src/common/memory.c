@@ -1,28 +1,78 @@
+#include "memory.h"
+#ifdef _WIN64
+#include "windows_io.h"
+#include "windows_file.h"
+#include "windows_misc.h"
+#endif
 #include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 
-#define DEFAULT_ALIGNMENT (2 * sizeof(void*))
-
-static inline bool isPowerOfTwo(uintptr_t x)
+void wb_memory_map(const char* path, wb_file_mapping* mapping)
 {
-    return (x & (x - 1)) == 0;
+#ifdef _WIN64
+    wchar_t buffer[MAX_PATH];
+    MultiByteToWideChar(CP_UTF8, 0, path, -1, buffer, MAX_PATH);
+
+    HANDLE file = CreateFileW(
+        buffer,
+        FILE_GENERIC_READ,
+        FILE_SHARE_READ,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL);
+    assert(file != INVALID_HANDLE_VALUE);
+
+    mapping->map_object = CreateFileMappingW(
+        file,
+        NULL,
+        PAGE_READONLY,
+        0,
+        0,
+        NULL);
+    assert(mapping->map_object != NULL);
+
+    mapping->data = MapViewOfFile(
+        mapping->map_object,
+        FILE_MAP_READ,
+        0,
+        0,
+        0);
+    assert(mapping->data != NULL);
+
+    CloseHandle(file);
+#endif
 }
 
-static inline uintptr_t alignForward(uintptr_t ptr, size_t align)
+void wb_memory_unmap(wb_file_mapping* mapping)
 {
-    assert(isPowerOfTwo(align));
-
-    uintptr_t p = ptr;
-    uintptr_t a = (uintptr_t) align;
-    uintptr_t modulo = p & (a - 1);
-
-    if (modulo != 0)
-        p += a - modulo;
-
-    return p;
+#ifdef _WIN64
+    if (mapping->data != NULL)
+        UnmapViewOfFile(mapping->data);
+    if (mapping->map_object != NULL)
+        CloseHandle(mapping->map_object);
+#endif
 }
+
+//#define DEFAULT_ALIGNMENT (2 * sizeof(void*))
+//
+//static inline bool isPowerOfTwo(uintptr_t x)
+//{
+//    return (x & (x - 1)) == 0;
+//}
+//
+//static inline uintptr_t alignForward(uintptr_t ptr, size_t align)
+//{
+//    assert(isPowerOfTwo(align));
+//
+//    uintptr_t p = ptr;
+//    uintptr_t a = (uintptr_t) align;
+//    uintptr_t modulo = p & (a - 1);
+//
+//    if (modulo != 0)
+//        p += a - modulo;
+//
+//    return p;
+//}
 
 //void b_init_allocator(allocator_t* allocator, void* buffer, u32 buffer_size)
 //{

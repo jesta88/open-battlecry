@@ -30,7 +30,7 @@ static inline s32 fls(u32 x)
 #ifdef _MSC_VER
     return x ? (s32) (sizeof(int) * CHAR_BIT) - clz(x) : 0;
 #else
-    return x ? (s32)(sizeof(int) * CHAR_BIT) - __builtin_clz(x) : 0;
+    return x ? (s32) (sizeof(int) * CHAR_BIT) - __builtin_clz(x) : 0;
 #endif
 }
 
@@ -77,7 +77,7 @@ void wbHashMapInit(hashmap_t* hash_map, u16 capacity)
     hash_map->capacity = capacity;
     hash_map->count = 0;
 
-    WbRng random = {0};
+    WbRng random = { 0 };
     // TODO: Seed with time
     wb_rng_init(&random, 0);
     hash_map->seed = wb_rng_uint(&random);
@@ -93,7 +93,7 @@ void wbHashMapFree(hashmap_t* hash_map)
     assert(hash_map != NULL);
 
     free(hash_map->buckets);
-    *hash_map = (hashmap_t) {0};
+    *hash_map = (hashmap_t){ 0 };
 }
 
 void wbHashMapAdd(hashmap_t* hash_map, const char* key, u16 value)
@@ -107,7 +107,8 @@ void wbHashMapAdd(hashmap_t* hash_map, const char* key, u16 value)
     do
     {
         key_hash = XXH3_64bits(key, strlen(key));
-    } while (key_hash == INVALID_HASH);
+    }
+    while (key_hash == INVALID_HASH);
 
     hashmap_bucket_t* bucket, entry;
     u32 i;
@@ -117,17 +118,17 @@ void wbHashMapAdd(hashmap_t* hash_map, const char* key, u16 value)
     entry.probe_sequence_length = 0;
 
     /*
-	 * From the paper: "when inserting, if a record probes a location
-	 * that is already occupied, the record that has traveled longer
-	 * in its probe sequence keeps the location, and the other one
-	 * continues on its probe sequence" (page 12).
-	 *
-	 * Basically: if the probe sequence length (PSL) of the element
-	 * being inserted is greater than PSL of the element in the bucket,
-	 * then swap them and continue.
-	 */
+     * From the paper: "when inserting, if a record probes a location
+     * that is already occupied, the record that has traveled longer
+     * in its probe sequence keeps the location, and the other one
+     * continues on its probe sequence" (page 12).
+     *
+     * Basically: if the probe sequence length (PSL) of the element
+     * being inserted is greater than PSL of the element in the bucket,
+     * then swap them and continue.
+     */
     i = fast_rem32(key_hash, hash_map->capacity, hash_map->div_info);
-    probe:
+probe:
     bucket = &hash_map->buckets[i];
     if (bucket->key_hash != INVALID_HASH)
     {
@@ -136,21 +137,21 @@ void wbHashMapAdd(hashmap_t* hash_map, const char* key, u16 value)
         // Duplicate key
         if (bucket->key_hash == key_hash)
         {
-			wb_log_error("Duplicate hash map key: %s", key);
+            wb_log_error("Duplicate hash map key: %s", key);
             assert(0);
         }
 
         /*
-		 * We found a "rich" bucket.  Capture its location.
-		 */
+         * We found a "rich" bucket.  Capture its location.
+         */
         if (entry.probe_sequence_length > bucket->probe_sequence_length)
         {
             hashmap_bucket_t temp_bucket;
 
             /*
-			 * Place our key-value pair by swapping the "rich"
-			 * bucket with our entry.  Copy the structures.
-			 */
+             * Place our key-value pair by swapping the "rich"
+             * bucket with our entry.  Copy the structures.
+             */
             temp_bucket = entry;
             entry = *bucket;
             *bucket = temp_bucket;
@@ -164,8 +165,8 @@ void wbHashMapAdd(hashmap_t* hash_map, const char* key, u16 value)
     }
 
     /*
-	 * Found a free bucket: insert the entry.
-	 */
+     * Found a free bucket: insert the entry.
+     */
     *bucket = entry; // copy
     hash_map->count++;
 
@@ -179,15 +180,16 @@ u16 wbHashMapGet(hashmap_t* hash_map, const char* key)
     u64 key_hash = INVALID_HASH;
     do
     {
-		key_hash = XXH3_64bits(key, strlen(key));
-    } while (key_hash == INVALID_HASH);
+        key_hash = XXH3_64bits(key, strlen(key));
+    }
+    while (key_hash == INVALID_HASH);
     u32 n = 0, i = fast_rem32(key_hash, hash_map->capacity, hash_map->div_info);
     hashmap_bucket_t* bucket;
 
     /*
-	 * Lookup is a linear probe.
-	 */
-    probe:
+     * Lookup is a linear probe.
+     */
+probe:
     bucket = &hash_map->buckets[i];
     assert(validate_probe_sequence_length(hash_map, bucket, i));
 
@@ -197,12 +199,12 @@ u16 wbHashMapGet(hashmap_t* hash_map, const char* key)
     }
 
     /*
-	 * Stop probing if we hit an empty bucket; also, if we hit a
-	 * bucket with PSL lower than the distance from the engine location,
-	 * then it means that we found the "rich" bucket which should
-	 * have been captured, if the key was inserted -- see the central
-	 * point of the algorithm in the insertion function.
-	 */
+     * Stop probing if we hit an empty bucket; also, if we hit a
+     * bucket with PSL lower than the distance from the engine location,
+     * then it means that we found the "rich" bucket which should
+     * have been captured, if the key was inserted -- see the central
+     * point of the algorithm in the insertion function.
+     */
     if (bucket->key_hash == INVALID_HASH || n > bucket->probe_sequence_length)
     {
         return UINT16_MAX;
@@ -221,16 +223,17 @@ u16 wbHashMapRemove(hashmap_t* hash_map, const char* key)
     u64 key_hash = INVALID_HASH;
     do
     {
-		key_hash = XXH3_64bits(key, strlen(key));
-    } while (key_hash == INVALID_HASH);
+        key_hash = XXH3_64bits(key, strlen(key));
+    }
+    while (key_hash == INVALID_HASH);
 
     u32 n = 0, i = fast_rem32(key_hash, hash_map->capacity, hash_map->div_info);
     hashmap_bucket_t* bucket;
     u16 value;
-    probe:
+probe:
     /*
-	 * The same probing logic as in the lookup function.
-	 */
+     * The same probing logic as in the lookup function.
+     */
     bucket = &hash_map->buckets[i];
     if (bucket->key_hash == INVALID_HASH || n > bucket->probe_sequence_length)
     {
@@ -250,9 +253,9 @@ u16 wbHashMapRemove(hashmap_t* hash_map, const char* key)
     hash_map->count--;
 
     /*
-	 * The probe sequence must be preserved in the deletion case.
-	 * Use the backwards-shifting method to maintain low variance.
-	 */
+     * The probe sequence must be preserved in the deletion case.
+     * Use the backwards-shifting method to maintain low variance.
+     */
     for (;;)
     {
         hashmap_bucket_t* nbucket;
@@ -264,9 +267,9 @@ u16 wbHashMapRemove(hashmap_t* hash_map, const char* key)
         assert(validate_probe_sequence_length(hash_map, nbucket, i));
 
         /*
-		 * Stop if we reach an empty bucket or hit a key which
-		 * is in its engine (original) location.
-		 */
+         * Stop if we reach an empty bucket or hit a key which
+         * is in its engine (original) location.
+         */
         if (nbucket->key_hash == INVALID_HASH || nbucket->probe_sequence_length == 0)
         {
             break;

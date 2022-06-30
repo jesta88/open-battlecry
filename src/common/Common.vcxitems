@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{49387066-c652-4924-ac18-2857e937e1c4}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)assert.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)asset.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)config.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)engine.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)filesystem.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)font.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)hashmap.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)image.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)input.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)job.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)log.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)memory.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)random.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)thread.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)assert.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)asset.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)config.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)engine.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)filesystem.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)font.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)hashmap.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)image.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)input.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)job.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)log.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)memory.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)pool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)random.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)thread.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)types.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)windows_base.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)windows_debug.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)windows_file.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)windows_gdi.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)windows_io.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)windows_misc.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)windows_window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)bits.inl" />
+    <None Include="$(MSBuildThisFileDirectory)string.inl" />
+  </ItemGroup>
+</Project>

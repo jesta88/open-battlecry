@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/types.h>
+#include "../common/types.h"
 
 typedef struct wb_xcr wb_xcr;
 
