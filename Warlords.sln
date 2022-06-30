@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shaders", "src\shaders\Shad
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "src\common\Common.vcxitems", "{49387066-C652-4924-AC18-2857E937E1C4}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShaderCompiler", "src\shader_compiler\ShaderCompiler.vcxproj", "{334157F3-7B18-40B5-B1DD-3AA1AECD9964}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,10 @@ Global
 		{A08941A9-F22F-4388-A21E-70AA563126D0}.Debug|x64.Build.0 = Debug|x64
 		{A08941A9-F22F-4388-A21E-70AA563126D0}.Release|x64.ActiveCfg = Release|x64
 		{A08941A9-F22F-4388-A21E-70AA563126D0}.Release|x64.Build.0 = Release|x64
+		{334157F3-7B18-40B5-B1DD-3AA1AECD9964}.Debug|x64.ActiveCfg = Debug|x64
+		{334157F3-7B18-40B5-B1DD-3AA1AECD9964}.Debug|x64.Build.0 = Debug|x64
+		{334157F3-7B18-40B5-B1DD-3AA1AECD9964}.Release|x64.ActiveCfg = Release|x64
+		{334157F3-7B18-40B5-B1DD-3AA1AECD9964}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -39,6 +45,7 @@ Global
 		SolutionGuid = {61F7FB11-1E47-470C-91E2-47F8143E1572}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		src\shaders\Shaders.vcxitems*{334157f3-7b18-40b5-b1dd-3aa1aecd9964}*SharedItemsImports = 4
 		src\common\Common.vcxitems*{49387066-c652-4924-ac18-2857e937e1c4}*SharedItemsImports = 9
 		src\shaders\Shaders.vcxitems*{a688b2d7-4326-4f14-bacf-1ef3eadbb6bd}*SharedItemsImports = 9
 		src\common\Common.vcxitems*{fa9e8173-7918-49f0-bac7-c9e54a47e19a}*SharedItemsImports = 4

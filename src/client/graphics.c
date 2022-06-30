@@ -1,7 +1,7 @@
 #include "graphics.h"
+#include "client.h"
 #include "../common/log.h"
 #include "../shaders/shaders.h"
-#include "client.h"
 
 #define VK_NO_PROTOTYPES
 #include "../third_party/volk.h"

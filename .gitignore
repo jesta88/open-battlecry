@@ -13,3 +13,5 @@ temp
 *.scor*
 /src/shaders/*.spv
 /src/shaders/*.c
+/src/shaders/*.exe
+/src/shaders/*.pdb
