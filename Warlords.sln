@@ -11,9 +11,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VulkanMemoryAllocator", "sr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shaders", "src\shaders\Shaders.vcxitems", "{A688B2D7-4326-4F14-BACF-1EF3EADBB6BD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "src\common\Common.vcxitems", "{49387066-C652-4924-AC18-2857E937E1C4}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShaderCompiler", "src\shader_compiler\ShaderCompiler.vcxproj", "{334157F3-7B18-40B5-B1DD-3AA1AECD9964}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AssetConverter", "src\asset_converter\AssetConverter.vcxproj", "{484839E2-B1F4-4289-9EBA-408B9FD757D3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "src\common\Common.vcxitems", "{49387066-C652-4924-AC18-2857E937E1C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +39,10 @@ Global
 		{334157F3-7B18-40B5-B1DD-3AA1AECD9964}.Debug|x64.Build.0 = Debug|x64
 		{334157F3-7B18-40B5-B1DD-3AA1AECD9964}.Release|x64.ActiveCfg = Release|x64
 		{334157F3-7B18-40B5-B1DD-3AA1AECD9964}.Release|x64.Build.0 = Release|x64
+		{484839E2-B1F4-4289-9EBA-408B9FD757D3}.Debug|x64.ActiveCfg = Debug|x64
+		{484839E2-B1F4-4289-9EBA-408B9FD757D3}.Debug|x64.Build.0 = Debug|x64
+		{484839E2-B1F4-4289-9EBA-408B9FD757D3}.Release|x64.ActiveCfg = Release|x64
+		{484839E2-B1F4-4289-9EBA-408B9FD757D3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -48,7 +54,6 @@ Global
 		src\shaders\Shaders.vcxitems*{334157f3-7b18-40b5-b1dd-3aa1aecd9964}*SharedItemsImports = 4
 		src\common\Common.vcxitems*{49387066-c652-4924-ac18-2857e937e1c4}*SharedItemsImports = 9
 		src\shaders\Shaders.vcxitems*{a688b2d7-4326-4f14-bacf-1ef3eadbb6bd}*SharedItemsImports = 9
-		src\common\Common.vcxitems*{fa9e8173-7918-49f0-bac7-c9e54a47e19a}*SharedItemsImports = 4
 		src\shaders\Shaders.vcxitems*{fa9e8173-7918-49f0-bac7-c9e54a47e19a}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal

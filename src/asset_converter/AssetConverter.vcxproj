@@ -13,10 +13,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{fa9e8173-7918-49f0-bac7-c9e54a47e19a}</ProjectGuid>
-    <RootNamespace>Game</RootNamespace>
+    <ProjectGuid>{484839e2-b1f4-4289-9eba-408b9fd757d3}</ProjectGuid>
+    <RootNamespace>AssetConverter</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>GameClient</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -35,9 +34,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="Shared">
-    <Import Project="..\shaders\Shaders.vcxitems" Label="Shared" />
-  </ImportGroup>
+  <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -57,17 +54,12 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VK_USE_PLATFORM_WIN32_KHR;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <FloatingPointModel>Fast</FloatingPointModel>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
-      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -77,48 +69,46 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VK_USE_PLATFORM_WIN32_KHR;WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <FloatingPointModel>Fast</FloatingPointModel>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
-      <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
-      <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\third_party\volk.c" />
-    <ClCompile Include="camera.c" />
-    <ClCompile Include="client.c" />
-    <ClCompile Include="graphics.c" />
-    <ClCompile Include="graphics_sdl.c" />
-    <ClCompile Include="renderer.c" />
-    <ClCompile Include="resource.c" />
+    <ClInclude Include="..\common\asset.h" />
+    <ClInclude Include="..\common\filesystem.h" />
+    <ClInclude Include="..\common\log.h" />
+    <ClInclude Include="..\common\memory.h" />
+    <ClInclude Include="..\common\path.h" />
+    <ClInclude Include="..\common\types.h" />
+    <ClInclude Include="..\common\windows_base.h" />
+    <ClInclude Include="..\common\windows_obj.h" />
+    <ClInclude Include="..\common\windows_file.h" />
+    <ClInclude Include="..\common\windows_gdi.h" />
+    <ClInclude Include="..\common\windows_user.h" />
+    <ClInclude Include="..\common\windows_window.h" />
+    <ClInclude Include="animation.h" />
+    <ClInclude Include="rle.h" />
+    <ClInclude Include="xcr.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\third_party\volk.h" />
-    <ClInclude Include="camera.h" />
-    <ClInclude Include="client.h" />
-    <ClInclude Include="graphics.h" />
-    <ClInclude Include="renderer.h" />
-    <ClInclude Include="resource.h" />
+    <ClCompile Include="..\common\asset.c" />
+    <ClCompile Include="..\common\filesystem.c" />
+    <ClCompile Include="..\common\log.c" />
+    <ClCompile Include="..\common\memory.c" />
+    <ClCompile Include="..\common\path.c" />
+    <ClCompile Include="main.c" />
+    <ClCompile Include="rle.c" />
+    <ClCompile Include="xcr.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\third_party\vma\VulkanMemoryAllocator.vcxproj">
-      <Project>{a08941a9-f22f-4388-a21e-70aa563126d0}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Update="E:\Projects\open-battlecry\src\shaders\sprite_vert.hlsl">
-      <FileType>Document</FileType>
-    </FxCompile>
+    <None Include="..\common\string.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

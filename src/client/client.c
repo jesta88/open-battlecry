@@ -1,6 +1,6 @@
 #include "client.h"
-#include "../common/log.h"
 #include "graphics.h"
+#include "../common/log.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 
     create_window();
 
-    const WbGraphicsDesc graphics_desc = {
+    const wb_graphics_desc graphics_desc = {
         .window_width = client.window.width,
         .window_height = client.window.height,
         .vsync = false,

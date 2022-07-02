@@ -14,10 +14,10 @@ void wb_log(WbLogType log_type, const char* file_name,
 void wb_log(WbLogType log_type, const char* file_name, int line, const char* func, const char* format, ...);
 #endif
 
-#define wb_log_info(...)  wb_log(WB_LOG_INFO, __FILE__, __LINE__, __func__, __VA_ARGS__)
-#define wb_log_error(...) wb_log(WB_LOG_ERROR, __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define wb_log_info(format, ...)  wb_log(WB_LOG_INFO, __FILE__, __LINE__, __func__, "" format "\n", ##__VA_ARGS__)
+#define wb_log_error(format, ...) wb_log(WB_LOG_ERROR, __FILE__, __LINE__, __func__, "" format "\n", ##__VA_ARGS__)
 #ifndef NDEBUG
-#define wb_log_debug(...) wb_log(WB_LOG_DEBUG, __FILE__, __LINE__, __func__, __VA_ARGS__)
+#define wb_log_debug(format, ...) wb_log(WB_LOG_DEBUG, __FILE__, __LINE__, __func__, "" format "\n", ##__VA_ARGS__)
 #else
-#define wb_log_debug(...)
+#define wb_log_debug(format, ...)
 #endif

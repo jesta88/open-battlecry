@@ -14,33 +14,27 @@
     <ProjectCapability Include="SourceItemsFromImports" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(MSBuildThisFileDirectory)assert.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)asset.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)config.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)filesystem.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)font.c" />
-    <ClCompile Include="$(MSBuildThisFileDirectory)hashmap.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)image.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)input.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)job.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)log.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)memory.c" />
+    <ClCompile Include="$(MSBuildThisFileDirectory)path.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)random.c" />
     <ClCompile Include="$(MSBuildThisFileDirectory)thread.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(MSBuildThisFileDirectory)assert.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)asset.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)config.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)filesystem.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)font.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)hashmap.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)hash.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)image.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)input.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)job.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)log.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)memory.h" />
-    <ClInclude Include="$(MSBuildThisFileDirectory)pool.h" />
+    <ClInclude Include="$(MSBuildThisFileDirectory)path.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)random.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)thread.h" />
     <ClInclude Include="$(MSBuildThisFileDirectory)types.h" />

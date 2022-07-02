@@ -122,6 +122,7 @@ extern "C" {
 
 #define DECLARE_INTERFACE_(iface, baseiface)    DECLARE_INTERFACE(iface)
 
+#define INVALID_HANDLE_VALUE    ((HANDLE)(LONG_PTR)-1)
 
 #define HRESULT_IS_WIN32(x) \
     ((((x) >> 16) & 0xFFFF) == 0x8)

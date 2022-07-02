@@ -16,9 +16,7 @@ add_library(vma STATIC
 
 target_include_directories(vma PUBLIC src/third_party/vma)
 
-target_link_libraries(vma 
-    PRIVATE
-        Vulkan::Headers)
+target_link_libraries(vma PRIVATE Vulkan::Headers)
 
 target_compile_definitions(vma
     PRIVATE
@@ -31,9 +29,10 @@ set_target_properties(freetype PROPERTIES
         IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/freetype/lib/freetype.lib
         INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/freetype/include)
 
-# Tools
-add_executable(bintoc src/tools/bintoc.c)
-target_link_libraries(bintoc PRIVATE Vulkan::Headers)
+# Shader Compiler
+add_executable(shader_compiler src/shader_compiler/main.c)
+target_link_libraries(shader_compiler PRIVATE Vulkan::Headers)
+target_compile_definitions(shader_compiler PRIVATE $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN>)
 
 # Shaders
 file(GLOB_RECURSE GLSL_SOURCE_FILES
@@ -48,14 +47,14 @@ foreach(GLSL ${GLSL_SOURCE_FILES})
             OUTPUT ${SPIRV}
             COMMENT "Compiling ${GLSL}"
             COMMAND $ENV{VULKAN_SDK}/Bin/glslangValidator.exe -V ${GLSL} -o ${SPIRV}
-            COMMAND ${CMAKE_BINARY_DIR}/bintoc.exe ${SPIRV} ${FILE_NAME}_spv ${CMAKE_SOURCE_DIR}/src/shaders/${FILE_NAME}.c
+            COMMAND ${CMAKE_BINARY_DIR}/shader_compiler.exe ${SPIRV} ${FILE_NAME}_spv ${CMAKE_SOURCE_DIR}/src/shaders/${FILE_NAME}.c
             DEPENDS ${GLSL})
     list(APPEND SPIRV_BINARY_FILES ${SPIRV})
 endforeach(GLSL)
 
 add_custom_target(shaders
         DEPENDS ${SPIRV_BINARY_FILES})
-add_dependencies(shaders bintoc)
+add_dependencies(shaders shader_compiler)
 
 # Client
 add_executable(client
@@ -93,9 +92,12 @@ add_executable(asset_converter
         src/asset_converter/xcr.h
         src/asset_converter/animation.h
         src/asset_converter/rle.h
+        src/asset_converter/rle.c
         src/common/types.h
         src/common/log.h
         src/common/log.c
+        src/common/path.c
+        src/common/path.h
         src/common/filesystem.h
         src/common/filesystem.c
         src/common/memory.h
@@ -104,5 +106,6 @@ add_executable(asset_converter
         src/common/windows_file.h
         src/common/windows_io.h
         src/common/windows_misc.h
-        src/third_party/tinyfiledialogs/tinyfiledialogs.c "src/asset_converter/rle.c" "src/third_party/ktx/ktx.h" "src/third_party/ktx/ktxvulkan.h")
-set_target_properties(asset_converter PROPERTIES LINKER_LANGUAGE C)
+        src/third_party/ktx/ktx.h
+        src/third_party/ktx/ktxvulkan.h)
+target_compile_definitions(asset_converter PRIVATE $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN>)

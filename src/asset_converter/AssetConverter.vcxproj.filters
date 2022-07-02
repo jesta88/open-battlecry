@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="animation.h" />
+    <ClInclude Include="rle.h" />
+    <ClInclude Include="xcr.h" />
+    <ClInclude Include="..\common\asset.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\filesystem.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\log.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\memory.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\types.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\windows_base.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\windows_gdi.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\windows_window.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\windows_file.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\windows_obj.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\windows_user.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\path.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.c" />
+    <ClCompile Include="rle.c" />
+    <ClCompile Include="xcr.c" />
+    <ClCompile Include="..\common\asset.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\filesystem.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\log.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\memory.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\path.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>{fd20b8df-8fb7-4170-b3d1-eab1abfdbfc9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\common\string.inl">
+      <Filter>Common</Filter>
+    </None>
+  </ItemGroup>
+</Project>

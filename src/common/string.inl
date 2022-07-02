@@ -4,28 +4,11 @@
 #include <string.h>
 #include <ctype.h>
 
-static inline void wb_str_copy(char* dst, const char* src, size_t length)
+static inline void wb_string_copy(char* dst, const char* src, size_t length)
 {
 	const u32* last = (u32*)_memccpy(dst, src, 0, length);
 	if (!last)
 		*(dst + length) = 0;
-}
-
-static inline int wb_str_get_extension(const char* file_name, char* result)
-{
-	char* dot = strrchr(file_name, '.');
-	if (!dot || dot == file_name)
-		return 1;
-
-	const char* extension = dot + 1;
-	const size_t extension_length = strlen(extension);
-	if (extension_length == 0 || extension[0] == '/' || extension[0] == '\\')
-		return 1;
-
-	wb_str_copy(result, extension, extension_length);
-	for (int i = 0; result[i]; i++)
-		result[i] = tolower(result[i]);
-	return 0;
 }
 
 static inline void wb_str_to_snake_case(char* out, size_t out_size, const char* in)
@@ -100,9 +83,9 @@ static inline void wb_str_replace(char* dst, const char* src, const char* search
 	u32 end_length = src_length - end_start;
 
 	char end[256];
-	wb_str_copy(end, src + end_start, end_length);
+	wb_string_copy(end, src + end_start, end_length);
 
-	wb_str_copy(dst, src, find_position);
+	wb_string_copy(dst, src, find_position);
 	strcat(dst, replace);
 	strcat(dst, end);
 }

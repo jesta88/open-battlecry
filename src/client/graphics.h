@@ -15,25 +15,25 @@ typedef struct
 	void* hinstance;
 #endif
 	bool vsync;
-} WbGraphicsDesc;
+} wb_graphics_desc;
 
 typedef struct
 {
 	int size;
 	void* data;
-} WbBufferDesc;
+} wb_buffer_desc;
 
 typedef struct
 {
 	int width;
 	int height;
-} WbTextureDesc;
+} wb_texture_desc;
 
 typedef struct
 {
 	int width;
 	int height;
-} WbRenderTargetDesc;
+} wb_render_target_desc;
 
 typedef struct
 {
@@ -53,6 +53,6 @@ typedef struct
 	u32 _pad1;
 } wb_sprite;
 
-void wb_graphics_init(const WbGraphicsDesc* graphics_desc);
+void wb_graphics_init(const wb_graphics_desc* graphics_desc);
 void wb_graphics_quit(void);
 void wb_graphics_draw(void);

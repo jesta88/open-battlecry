@@ -6,7 +6,19 @@
 #endif
 #include <assert.h>
 
-void wb_memory_map(const char* path, wb_file_mapping* mapping)
+u8* wb_memory_virtual_alloc(u64 size)
+{
+    u8* memory = VirtualAlloc(NULL, size, MEM_COMMIT, PAGE_READWRITE);
+    assert(memory);
+    return memory;
+}
+
+void wb_memory_virtual_free(u8* memory)
+{
+    VirtualFree(memory, 0, MEM_RELEASE);
+}
+
+void wb_memory_map(const char* path, wb_memory_mapping* mapping)
 {
 #ifdef _WIN64
     wchar_t buffer[MAX_PATH];
@@ -43,7 +55,7 @@ void wb_memory_map(const char* path, wb_file_mapping* mapping)
 #endif
 }
 
-void wb_memory_unmap(wb_file_mapping* mapping)
+void wb_memory_unmap(wb_memory_mapping* mapping)
 {
 #ifdef _WIN64
     if (mapping->data != NULL)

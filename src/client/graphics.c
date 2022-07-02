@@ -140,7 +140,7 @@ static void createTexture(u32 width, u32 height, const u8* data, VkFormat format
 static void createRenderTarget(u32 width, u32 height, VkSampleCountFlagBits sampleCount, WbRenderTarget* renderTarget);
 static void updateTextureSampler(VkSampler sampler, VkImageView imageView, VkDescriptorSet descriptorSet);
 
-void wb_graphics_init(const WbGraphicsDesc* graphics_desc)
+void wb_graphics_init(const wb_graphics_desc* graphics_desc)
 {
     assert(graphics_desc);
 
@@ -321,6 +321,7 @@ void wb_graphics_draw(void)
     result = vkEndCommandBuffer(cmd);
     assert(result == VK_SUCCESS);
 
+    // TODO: Use Synchronization2 
     result = vkQueueSubmit(s_graphics_queue, 1, &(const VkSubmitInfo){
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
             .commandBufferCount = 1,
@@ -579,6 +580,7 @@ static void createAllocator()
 
 static void createSwapchain(u32 width, u32 height, bool vsync)
 {
+    // TODO: VK_EXT_full_screen_exclusive 
     //    VkSurfaceFullScreenExclusiveInfoEXT fullscreen_exclusive_info = {
     //        .sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT,
     //        .fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_APPLICATION_CONTROLLED_EXT
@@ -642,7 +644,7 @@ static void createSwapchain(u32 width, u32 height, bool vsync)
 
     result = vkCreateSwapchainKHR(s_device, &(const VkSwapchainCreateInfoKHR){
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-            .pNext = NULL,// TODO: Handle exclusive fullscreen
+            .pNext = NULL,
             .surface = s_surface,
             .minImageCount = vsync ? 3 : 2,
             .imageFormat = k_swapchain_format,

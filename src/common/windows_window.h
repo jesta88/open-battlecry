@@ -446,6 +446,7 @@ BOOL WINAPI AdjustWindowRectEx(
     DWORD dwStyle,
     BOOL bMenu,
     DWORD dwExStyle);
+HWND WINAPI GetForegroundWindow();
 
 /* ========================================================================== */
 /* Message Queue: */

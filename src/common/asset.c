@@ -1,4 +1,3 @@
-#ifndef SERVER
 #include "asset.h"
 
 typedef struct
@@ -37,4 +36,3 @@ void pak_unload(pak_t* pak)
 {
 
 }
-#endif
