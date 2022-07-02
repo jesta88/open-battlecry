@@ -121,9 +121,14 @@ wb_xcr* wb_xcr_load(const char* path)
             continue;
         }
 
-        wb_string_copy(xcr_data->resources[resource_count].name, resource_header->file_name, strlen(resource_header->file_name));
-        xcr_data->resources[resource_count].offset = resource_header->offset;
-        xcr_data->resources[resource_count].type = resource_type;
+        //wb_string_copy(xcr_data->resources[resource_count].name, resource_header->file_name, strlen(resource_header->file_name));
+        const wb_xcr_resource resource = {
+                .name = resource_header->file_name,
+                .data = xcr_buffer + resource_header->offset,
+                .size = xcr_header->file_size,
+                .type = resource_type
+        };
+        memcpy(&xcr_data->resources[resource_count], &resource, sizeof(wb_xcr_resource));
         resource_count++;        
     }
     xcr_data->resource_count = resource_count;

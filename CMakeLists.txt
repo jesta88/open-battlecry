@@ -14,10 +14,8 @@ add_library(vma STATIC
     src/third_party/vma/vk_mem_alloc.h
     src/third_party/vma/vk_mem_alloc.cpp)
 
-target_include_directories(vma PUBLIC src/third_party/vma)
-
 target_link_libraries(vma PRIVATE Vulkan::Headers)
-
+target_include_directories(vma PUBLIC src/third_party/vma)
 target_compile_definitions(vma
     PRIVATE
         $<$<PLATFORM_ID:Windows>:WIN32_LEAN_AND_MEAN VK_USE_PLATFORM_WIN32_KHR>
@@ -28,6 +26,12 @@ add_library(freetype STATIC IMPORTED)
 set_target_properties(freetype PROPERTIES
         IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/freetype/lib/freetype.lib
         INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/freetype/include)
+
+# libktx
+add_library(ktx STATIC IMPORTED)
+set_target_properties(ktx PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/ktx/lib/ktx.lib
+        INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/ktx/include)
 
 # Shader Compiler
 add_executable(shader_compiler src/shader_compiler/main.c)
@@ -106,6 +110,9 @@ add_executable(asset_converter
         src/common/windows_file.h
         src/common/windows_io.h
         src/common/windows_misc.h
-        src/third_party/ktx/ktx.h
-        src/third_party/ktx/ktxvulkan.h)
+        src/third_party/ktx/include/ktx.h
+        src/third_party/ktx/include/ktxvulkan.h
+        src/third_party/stb_image.h
+        src/third_party/stb_image.c)
+target_link_libraries(asset_converter PRIVATE ktx shlwapi)
 target_compile_definitions(asset_converter PRIVATE $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN>)

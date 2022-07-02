@@ -13,11 +13,12 @@
 #include <assert.h>
 
 #ifndef MAX_PATH
-#define MAX_PATH 1024
+#define MAX_PATH 260
 #endif
 
 static BOOL CALLBACK browse_callback_proc_enum(HWND hWndChild, LPARAM lParam)
 {
+    (void)lParam;
     char buffer[255];
     GetClassNameA(hWndChild, buffer, sizeof(buffer));
     if (strcmp(buffer, "SysTreeView32") == 0) {
@@ -30,6 +31,7 @@ static BOOL CALLBACK browse_callback_proc_enum(HWND hWndChild, LPARAM lParam)
 
 static int CALLBACK browse_callback_proc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM pData)
 {
+    (void)lp;
     switch (uMsg) {
         case BFFM_INITIALIZED:
             SendMessageA(hwnd, BFFM_SETSELECTIONA, TRUE, (LPARAM) pData);
@@ -42,25 +44,21 @@ static int CALLBACK browse_callback_proc(HWND hwnd, UINT uMsg, LPARAM lp, LPARAM
 
 u32 wb_filesystem_read(const char* path, u8* buffer)
 {
-    HANDLE file = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE file = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
     assert(file != INVALID_HANDLE_VALUE);
 
     ULARGE_INTEGER file_size = {0};
     file_size.LowPart = GetFileSize(file, &file_size.HighPart);
 
     DWORD bytes_read;
-    //OVERLAPPED overlapped = {0};
     if (ReadFile(file, buffer, file_size.LowPart, &bytes_read, NULL) == FALSE)
     {
         wb_log_error("Could not read file %s: %d", path, GetLastError());
         CloseHandle(file);
         return 0;
     }
-
-    return bytes_read;
-
     CloseHandle(file);
-
+    return bytes_read;
 }
 
 const char* wb_filesystem_folder_dialog(const char* title, const char* default_path)

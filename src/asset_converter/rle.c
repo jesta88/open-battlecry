@@ -1,6 +1,5 @@
 #include "rle.h"
 #include "../common/log.h"
-#include <stdio.h>
 
 enum
 {

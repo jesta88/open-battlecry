@@ -19,9 +19,10 @@ typedef enum
 
 typedef struct
 {
-    u32 offset;
-    u8 type;
-    char name[59];
+	const char* name;
+	const u8* data;
+	const u32 size;
+	const u8 type;
 } wb_xcr_resource;
 
 typedef struct 

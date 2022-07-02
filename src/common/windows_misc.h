@@ -304,11 +304,6 @@ VOID __stosq(
         DWORD64 Value,
         SIZE_T Count);
 
-#pragma intrinsic(__stosb)
-#pragma intrinsic(__stosw)
-#pragma intrinsic(__stosd)
-#pragma intrinsic(__stosq)
-
 FORCEINLINE PVOID SecureZeroMemory(
         PVOID ptr,
         SIZE_T cnt)
