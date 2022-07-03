@@ -33,6 +33,12 @@ set_target_properties(ktx PROPERTIES
         IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/ktx/lib/ktx.lib
         INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/ktx/include)
 
+# Nvidia Texture Tools
+add_library(nvtt STATIC IMPORTED)
+set_target_properties(nvtt PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/nvtt/lib/nvtt30106.lib
+        INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/nvtt/include)
+
 # Shader Compiler
 add_executable(shader_compiler src/shader_compiler/main.c)
 target_link_libraries(shader_compiler PRIVATE Vulkan::Headers)
@@ -112,7 +118,8 @@ add_executable(asset_converter
         src/common/windows_misc.h
         src/third_party/ktx/include/ktx.h
         src/third_party/ktx/include/ktxvulkan.h
+        src/third_party/nvtt/include/nvtt_wrapper.h
         src/third_party/stb_image.h
-        src/third_party/stb_image.c)
-target_link_libraries(asset_converter PRIVATE ktx shlwapi)
+        src/third_party/stb_image.c src/asset_converter/bmp.h src/asset_converter/bmp.c)
+target_link_libraries(asset_converter PRIVATE ktx nvtt shlwapi)
 target_compile_definitions(asset_converter PRIVATE $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN>)

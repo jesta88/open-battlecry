@@ -107,15 +107,15 @@ wb_xcr* wb_xcr_load(const char* path)
         }
 
         u8 resource_type = U8_MAX;
-        if (extension[0] == 'b' && extension[1] == 'm') resource_type = (u8) WB_XCR_RESOURCE_BMP;
-        else if (extension[0] == 'r' && extension[1] == 'l') resource_type = (u8) WB_XCR_RESOURCE_RLE;
-        else if (extension[0] == 'a' && extension[1] == 'n') resource_type = (u8) WB_XCR_RESOURCE_ANI;
-        else if (extension[0] == 't' && extension[1] == 'e') resource_type = (u8) WB_XCR_RESOURCE_TER;
-        else if (extension[0] == 'f' && extension[1] == 'e') resource_type = (u8) WB_XCR_RESOURCE_FEA;
-        else if (extension[0] == 'a' && extension[1] == 'r') resource_type = (u8) WB_XCR_RESOURCE_ARM;
-        else if (extension[0] == 'b' && extension[1] == 'u') resource_type = (u8) WB_XCR_RESOURCE_BUI;
-        else if (extension[0] == 'g' && extension[1] == 'o') resource_type = (u8) WB_XCR_RESOURCE_GOM;
-        else if (extension[0] == 'w' && extension[1] == 'a') resource_type = (u8) WB_XCR_RESOURCE_WAV;
+        if (tolower(extension[0]) == 'b' && tolower(extension[1]) == 'm') resource_type = (u8) WB_XCR_RESOURCE_BMP;
+        else if (tolower(extension[0]) == 'r' && tolower(extension[1]) == 'l') resource_type = (u8) WB_XCR_RESOURCE_RLE;
+        else if (tolower(extension[0]) == 'a' && tolower(extension[1]) == 'n') resource_type = (u8) WB_XCR_RESOURCE_ANI;
+        else if (tolower(extension[0]) == 't' && tolower(extension[1]) == 'e') resource_type = (u8) WB_XCR_RESOURCE_TER;
+        else if (tolower(extension[0]) == 'f' && tolower(extension[1]) == 'e') resource_type = (u8) WB_XCR_RESOURCE_FEA;
+        else if (tolower(extension[0]) == 'a' && tolower(extension[1]) == 'r') resource_type = (u8) WB_XCR_RESOURCE_ARM;
+        else if (tolower(extension[0]) == 'b' && tolower(extension[1]) == 'u') resource_type = (u8) WB_XCR_RESOURCE_BUI;
+        else if (tolower(extension[0]) == 'g' && tolower(extension[1]) == 'o') resource_type = (u8) WB_XCR_RESOURCE_GOM;
+        else if (tolower(extension[0]) == 'w' && tolower(extension[1]) == 'a') resource_type = (u8) WB_XCR_RESOURCE_WAV;
         else
         {
             continue;
