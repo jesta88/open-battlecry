@@ -190,7 +190,7 @@ RECENT REVISION HISTORY:
 // Note that stb_image pervasively uses ints in its public API for sizes,
 // including sizes of memory buffers. This is now part of the API and thus
 // hard to change without causing breakage. As a result, the various image
-// loaders all have certain limits on image size; these differ somewhat
+// loaders all have certain limits on image source_size; these differ somewhat
 // by format but generally boil down to either just under 2GB or just under
 // 1GB. When the decoded image would be larger than this, stb_image decoding
 // will fail.
@@ -202,7 +202,7 @@ RECENT REVISION HISTORY:
 // is for it to have a rather extreme aspect ratio. Either way, the
 // assumption here is that such larger images are likely to be malformed
 // or malicious. If you do need to load an image with individual dimensions
-// larger than that, and it still fits in the overall size limit, you can
+// larger than that, and it still fits in the overall source_size limit, you can
 // #define STBI_MAX_DIMENSIONS on your own to be something larger.
 //
 // ===========================================================================
@@ -356,7 +356,7 @@ RECENT REVISION HISTORY:
 //     want the zlib decoder to be available, #define STBI_SUPPORT_ZLIB
 //
 //  - If you define STBI_MAX_DIMENSIONS, stb_image will reject images greater
-//    than that size (in either width or height) without further processing.
+//    than that source_size (in either width or height) without further processing.
 //    This is to let programs in the wild set an upper bound to prevent
 //    denial-of-service attacks on untrusted data, as one could generate a
 //    valid image of gigantic dimensions and force stb_image to allocate a
@@ -407,7 +407,7 @@ extern "C" {
 
 typedef struct
 {
-   int      (*read)  (void *user,char *data,int size);   // fill 'data' with 'size' bytes.  return number of bytes actually read
+   int      (*read)  (void *user,char *data,int size);   // fill 'data' with 'source_size' bytes.  return number of bytes actually read
    void     (*skip)  (void *user,int n);                 // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
    int      (*eof)   (void *user);                       // returns nonzero if we are at end of file/data
 } stbi_io_callbacks;
@@ -648,7 +648,7 @@ typedef uint32_t stbi__uint32;
 typedef int32_t  stbi__int32;
 #endif
 
-// should produce compiler error if size is wrong
+// should produce compiler error if source_size is wrong
 typedef unsigned char validate_uint32[sizeof(stbi__uint32)==4 ? 1 : -1];
 
 #ifdef _MSC_VER
@@ -844,9 +844,9 @@ static void stbi__start_callbacks(stbi__context *s, stbi_io_callbacks *c, void *
 
 #ifndef STBI_NO_STDIO
 
-static int stbi__stdio_read(void *user, char *data, int size)
+static int stbi__stdio_read(void *user, char *data, int source_size)
 {
-   return (int) fread(data,1,size,(FILE*) user);
+   return (int) fread(data,1,source_size,(FILE*) user);
 }
 
 static void stbi__stdio_skip(void *user, int n)
@@ -985,12 +985,12 @@ static void *stbi__malloc(size_t size)
 }
 
 // stb_image uses ints pervasively, including for offset calculations.
-// therefore the largest decoded image size we can support with the
+// therefore the largest decoded image source_size we can support with the
 // current code, even on 64-bit targets, is INT_MAX. this is not a
 // significant limitation for the intended use case.
 //
-// we do, however, need to make sure our size calculations don't
-// overflow. hence a few helper functions for size calculations that
+// we do, however, need to make sure our source_size calculations don't
+// overflow. hence a few helper functions for source_size calculations that
 // multiply integers together, making sure that they're non-negative
 // and no overflow occurs.
 
@@ -1041,7 +1041,7 @@ static int stbi__mad4sizes_valid(int a, int b, int c, int d, int add)
 #endif
 
 #if !defined(STBI_NO_JPEG) || !defined(STBI_NO_PNG) || !defined(STBI_NO_TGA) || !defined(STBI_NO_HDR)
-// mallocs with size overflow checking
+// mallocs with source_size overflow checking
 static void *stbi__malloc_mad2(int a, int b, int add)
 {
    if (!stbi__mad2sizes_valid(a, b, add)) return NULL;
@@ -1899,7 +1899,7 @@ static stbi_uc *stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
 //      - doesn't try to recover corrupt jpegs
 //      - doesn't allow partial loading, loading multiple at once
 //      - still fast on x86 (copying globals into locals doesn't help x86)
-//      - allocates lots of intermediate memory (full size of all components)
+//      - allocates lots of intermediate memory (full source_size of all components)
 //        - non-interleaved case requires this anyway
 //        - allows good upsampling (see next)
 //    high-quality
@@ -1921,7 +1921,7 @@ typedef struct
    // weirdly, repacking this into AoS is a 10% speed loss, instead of a win
    stbi__uint16 code[256];
    stbi_uc  values[256];
-   stbi_uc  size[257];
+   stbi_uc  source_size[257];
    unsigned int maxcode[18];
    int    delta[17];   // old 'firstsymbol' - old 'firstcode'
 } stbi__huffman;
@@ -1984,11 +1984,11 @@ static int stbi__build_huffman(stbi__huffman *h, int *count)
 {
    int i,j,k=0;
    unsigned int code;
-   // build size list for each symbol (from JPEG spec)
+   // build source_size list for each symbol (from JPEG spec)
    for (i=0; i < 16; ++i)
       for (j=0; j < count[i]; ++j)
-         h->size[k++] = (stbi_uc) (i+1);
-   h->size[k] = 0;
+         h->source_size[k++] = (stbi_uc) (i+1);
+   h->source_size[k] = 0;
 
    // compute actual symbols (from jpeg spec)
    code = 0;
@@ -1996,12 +1996,12 @@ static int stbi__build_huffman(stbi__huffman *h, int *count)
    for(j=1; j <= 16; ++j) {
       // compute delta to add to code to compute symbol id
       h->delta[j] = k - code;
-      if (h->size[k] == j) {
-         while (h->size[k] == j)
+      if (h->source_size[k] == j) {
+         while (h->source_size[k] == j)
             h->code[k++] = (stbi__uint16) (code++);
          if (code-1 >= (1u << j)) return stbi__err("bad code lengths","Corrupt JPEG");
       }
-      // compute largest code + 1 for this size, preshifted as needed later
+      // compute largest code + 1 for this source_size, preshifted as needed later
       h->maxcode[j] = code << (16-j);
       code <<= 1;
    }
@@ -2010,7 +2010,7 @@ static int stbi__build_huffman(stbi__huffman *h, int *count)
    // build non-spec acceleration table; 255 is flag for not-accelerated
    memset(h->fast, 255, 1 << FAST_BITS);
    for (i=0; i < k; ++i) {
-      int s = h->size[i];
+      int s = h->source_size[i];
       if (s <= FAST_BITS) {
          int c = h->code[i] << (FAST_BITS-s);
          int m = 1 << (FAST_BITS-s);
@@ -2034,7 +2034,7 @@ static void stbi__build_fast_ac(stbi__int16 *fast_ac, stbi__huffman *h)
          int rs = h->values[fast];
          int run = (rs >> 4) & 15;
          int magbits = rs & 15;
-         int len = h->size[fast];
+         int len = h->source_size[fast];
 
          if (magbits && len + magbits <= FAST_BITS) {
             // magnitude code followed by receive_extend code
@@ -2083,7 +2083,7 @@ stbi_inline static int stbi__jpeg_huff_decode(stbi__jpeg *j, stbi__huffman *h)
    c = (j->code_buffer >> (32 - FAST_BITS)) & ((1 << FAST_BITS)-1);
    k = h->fast[c];
    if (k < 255) {
-      int s = h->size[k];
+      int s = h->source_size[k];
       if (s > j->code_bits)
          return -1;
       j->code_buffer <<= s;
@@ -2112,7 +2112,7 @@ stbi_inline static int stbi__jpeg_huff_decode(stbi__jpeg *j, stbi__huffman *h)
 
    // convert the huffman code to the symbol id
    c = ((j->code_buffer >> (32 - k)) & stbi__bmask[k]) + h->delta[k];
-   STBI_ASSERT((((j->code_buffer) >> (32 - h->size[c])) & stbi__bmask[h->size[c]]) == h->code[c]);
+   STBI_ASSERT((((j->code_buffer) >> (32 - h->source_size[c])) & stbi__bmask[h->source_size[c]]) == h->code[c]);
 
    // convert the id to a symbol
    j->code_bits -= k;
@@ -4043,7 +4043,7 @@ typedef struct
    stbi__uint16 firstcode[16];
    int maxcode[17];
    stbi__uint16 firstsymbol[16];
-   stbi_uc  size[STBI__ZNSYMS];
+   stbi_uc  source_size[STBI__ZNSYMS];
    stbi__uint16 value[STBI__ZNSYMS];
 } stbi__zhuffman;
 
@@ -4096,7 +4096,7 @@ static int stbi__zbuild_huffman(stbi__zhuffman *z, const stbi_uc *sizelist, int 
       if (s) {
          int c = next_code[s] - z->firstcode[s] + z->firstsymbol[s];
          stbi__uint16 fastv = (stbi__uint16) ((s << 9) | i);
-         z->size [c] = (stbi_uc     ) s;
+         z->source_size [c] = (stbi_uc     ) s;
          z->value[c] = (stbi__uint16) i;
          if (s <= STBI__ZFAST_BITS) {
             int j = stbi__bit_reverse(next_code[s],s);
@@ -4173,10 +4173,10 @@ static int stbi__zhuffman_decode_slowpath(stbi__zbuf *a, stbi__zhuffman *z)
       if (k < z->maxcode[s])
          break;
    if (s >= 16) return -1; // invalid code!
-   // code size is s, so:
+   // code source_size is s, so:
    b = (k >> (16-s)) - z->firstcode[s] + z->firstsymbol[s];
    if (b >= STBI__ZNSYMS) return -1; // some data was corrupt somewhere!
-   if (z->size[b] != s) return -1;  // was originally an assert, but report failure instead.
+   if (z->source_size[b] != s) return -1;  // was originally an assert, but report failure instead.
    a->code_buffer >>= s;
    a->num_bits -= s;
    return z->value[b];
@@ -5137,7 +5137,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp)
             if (first) return stbi__err("first not IHDR", "Corrupt PNG");
             if (scan != STBI__SCAN_load) return 1;
             if (z->idata == NULL) return stbi__err("no IDAT","Corrupt PNG");
-            // initial guess for decoded data size to avoid unnecessary reallocs
+            // initial guess for decoded data source_size to avoid unnecessary reallocs
             bpl = (s->img_x * z->depth + 7) / 8; // bytes per line, per component
             raw_len = bpl * s->img_y * s->img_n /* pixels */ + s->img_y /* filter mode per row */;
             z->expanded = (stbi_uc *) stbi_zlib_decode_malloc_guesssize_headerflag((char *) z->idata, ioff, raw_len, (int *) &raw_len, !is_iphone);
@@ -5455,7 +5455,7 @@ static void *stbi__bmp_parse_header(stbi__context *s, stbi__bmp_data *info)
          if (hsz == 124) {
             stbi__get32le(s); // discard rendering intent
             stbi__get32le(s); // discard offset of profile data
-            stbi__get32le(s); // discard size of profile data
+            stbi__get32le(s); // discard source_size of profile data
             stbi__get32le(s); // discard reserved
          }
       }
@@ -5512,7 +5512,7 @@ static void *stbi__bmp_load(stbi__context *s, int *x, int *y, int *comp, int req
    else
       target = s->img_n; // if they want monochrome, we'll post-convert
 
-   // sanity-check size
+   // sanity-check source_size
    if (!stbi__mad3sizes_valid(target, s->img_x, s->img_y, 0))
       return stbi__errpuc("too large", "Corrupt BMP");
 
@@ -5720,7 +5720,7 @@ static int stbi__tga_info(stbi__context *s, int *x, int *y, int *comp)
     stbi__get8(s); // ignore alpha bits
     if (tga_colormap_bpp != 0) {
         if((tga_bits_per_pixel != 8) && (tga_bits_per_pixel != 16)) {
-            // when using a colormap, tga_bits_per_pixel is the size of the indexes
+            // when using a colormap, tga_bits_per_pixel is the source_size of the indexes
             // I don't think anything but 8 or 16bit indexes makes sense
             stbi__rewind(s);
             return 0;
@@ -5760,7 +5760,7 @@ static int stbi__tga_test(stbi__context *s)
    if ( stbi__get16le(s) < 1 ) goto errorEnd;      //   test width
    if ( stbi__get16le(s) < 1 ) goto errorEnd;      //   test height
    sz = stbi__get8(s);   //   bits per pixel
-   if ( (tga_color_type == 1) && (sz != 8) && (sz != 16) ) goto errorEnd; // for colormapped images, bpp is size of an index
+   if ( (tga_color_type == 1) && (sz != 8) && (sz != 16) ) goto errorEnd; // for colormapped images, bpp is source_size of an index
    if ( (sz != 8) && (sz != 15) && (sz != 16) && (sz != 24) && (sz != 32) ) goto errorEnd;
 
    res = 1; // if we got this far, everything's good and we can return 1 instead of 0
@@ -6113,7 +6113,7 @@ static void *stbi__psd_load(stbi__context *s, int *x, int *y, int *comp, int req
    if (compression > 1)
       return stbi__errpuc("bad compression", "PSD has an unknown compression format");
 
-   // Check size
+   // Check source_size
    if (!stbi__mad3sizes_valid(4, w, h, 0))
       return stbi__errpuc("too large", "Corrupt PSD");
 
@@ -6283,7 +6283,7 @@ static int stbi__pic_test_core(stbi__context *s)
 
 typedef struct
 {
-   stbi_uc size,type,channel;
+   stbi_uc source_size,type,channel;
 } stbi__pic_packet;
 
 static stbi_uc *stbi__readval(stbi__context *s, int channel, stbi_uc *dest)
@@ -6325,14 +6325,14 @@ static stbi_uc *stbi__pic_load_core(stbi__context *s,int width,int height,int *c
       packet = &packets[num_packets++];
 
       chained = stbi__get8(s);
-      packet->size    = stbi__get8(s);
+      packet->source_size    = stbi__get8(s);
       packet->type    = stbi__get8(s);
       packet->channel = stbi__get8(s);
 
       act_comp |= packet->channel;
 
       if (stbi__at_eof(s))          return stbi__errpuc("bad file","file too short (reading packets)");
-      if (packet->size != 8)  return stbi__errpuc("bad format","packet isn't 8bpp");
+      if (packet->source_size != 8)  return stbi__errpuc("bad format","packet isn't 8bpp");
    } while (chained);
 
    *comp = (act_comp & 0x10 ? 4 : 3); // has alpha channel?
@@ -7379,7 +7379,7 @@ static int stbi__pic_info(stbi__context *s, int *x, int *y, int *comp)
 
       packet = &packets[num_packets++];
       chained = stbi__get8(s);
-      packet->size    = stbi__get8(s);
+      packet->source_size    = stbi__get8(s);
       packet->type    = stbi__get8(s);
       packet->channel = stbi__get8(s);
       act_comp |= packet->channel;
@@ -7388,7 +7388,7 @@ static int stbi__pic_info(stbi__context *s, int *x, int *y, int *comp)
           stbi__rewind( s );
           return 0;
       }
-      if (packet->size != 8) {
+      if (packet->source_size != 8) {
           stbi__rewind( s );
           return 0;
       }

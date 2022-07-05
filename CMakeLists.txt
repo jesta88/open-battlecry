@@ -33,12 +33,6 @@ set_target_properties(ktx PROPERTIES
         IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/ktx/lib/ktx.lib
         INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/ktx/include)
 
-# Nvidia Texture Tools
-add_library(nvtt STATIC IMPORTED)
-set_target_properties(nvtt PROPERTIES
-        IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/src/third_party/nvtt/lib/nvtt30106.lib
-        INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_SOURCE_DIR}/src/third_party/nvtt/include)
-
 # Shader Compiler
 add_executable(shader_compiler src/shader_compiler/main.c)
 target_link_libraries(shader_compiler PRIVATE Vulkan::Headers)
@@ -101,8 +95,12 @@ add_executable(asset_converter
         src/asset_converter/xcr.c
         src/asset_converter/xcr.h
         src/asset_converter/animation.h
-        src/asset_converter/rle.h
-        src/asset_converter/rle.c
+        src/asset_converter/ktx.h
+        src/asset_converter/ktx.c
+        src/asset_converter/image.c
+        src/asset_converter/image.h
+        src/asset_converter/encode.c
+        src/asset_converter/encode.h
         src/common/types.h
         src/common/log.h
         src/common/log.c
@@ -118,8 +116,14 @@ add_executable(asset_converter
         src/common/windows_misc.h
         src/third_party/ktx/include/ktx.h
         src/third_party/ktx/include/ktxvulkan.h
-        src/third_party/nvtt/include/nvtt_wrapper.h
         src/third_party/stb_image.h
-        src/third_party/stb_image.c src/asset_converter/bmp.h src/asset_converter/bmp.c)
-target_link_libraries(asset_converter PRIVATE ktx nvtt shlwapi)
-target_compile_definitions(asset_converter PRIVATE $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN>)
+        src/third_party/stb_image.c
+        src/third_party/bc7enc_rdo/bc7e_ispc.h
+        src/third_party/bc7enc_rdo/bc7e.obj
+        src/third_party/bc7enc_rdo/bc7e_avx.obj
+        src/third_party/bc7enc_rdo/bc7e_avx2.obj
+        src/third_party/bc7enc_rdo/bc7e_sse2.obj
+        src/third_party/bc7enc_rdo/bc7e_sse4.obj)
+target_link_libraries(asset_converter PRIVATE ktx shlwapi)
+target_compile_options(asset_converter PRIVATE /nologo /GS- /std:c17 /Zc:preprocessor /fp:fast /arch:AVX /openmp)
+target_compile_definitions(asset_converter PRIVATE SUPPORT_BC7E=1 $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN>)

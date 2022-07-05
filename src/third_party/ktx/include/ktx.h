@@ -74,7 +74,7 @@ typedef uint64_t ktx_uint64_t;
 typedef  int64_t ktx_int64_t;
 #endif
 
-/* This will cause compilation to fail if size of uint32 != 4. */
+/* This will cause compilation to fail if source_size of uint32 != 4. */
 typedef unsigned char ktx_uint32_t_SIZE_ASSERT[sizeof(ktx_uint32_t) == 4];
 
 /*
@@ -160,7 +160,7 @@ typedef enum ktx_error_code_e {
     KTX_FILE_DATA_ERROR,     /*!< The data in the file is inconsistent with the spec. */
     KTX_FILE_ISPIPE,         /*!< The file is a pipe or named pipe. */
     KTX_FILE_OPEN_FAILED,    /*!< The target file could not be opened. */
-    KTX_FILE_OVERFLOW,       /*!< The operation would exceed the max file size. */
+    KTX_FILE_OVERFLOW,       /*!< The operation would exceed the max file source_size. */
     KTX_FILE_READ_ERROR,     /*!< An error occurred while reading from the file. */
     KTX_FILE_SEEK_ERROR,     /*!< An error occurred while seeking in the file. */
     KTX_FILE_UNEXPECTED_EOF, /*!< File does not have enough data to satisfy request. */
@@ -407,7 +407,7 @@ typedef struct ktxTexture {
  * object.
  *
  * @param [in] miplevel        MIP level from 0 to the max level which is
- *                             dependent on the texture size.
+ *                             dependent on the texture source_size.
  * @param [in] face            usually 0; for cube maps, one of the 6 cube
  *                             faces in the order +X, -X, +Y, -Y, +Z, -Z,
  *                             0 to 5.
@@ -793,13 +793,13 @@ KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture_GetRowPitch(ktxTexture* This, ktx_uint32_t level);
 
  /*
-  * Return the element size of the texture's images.
+  * Return the element source_size of the texture's images.
   */
 KTX_API ktx_uint32_t KTX_APIENTRY
 ktxTexture_GetElementSize(ktxTexture* This);
 
 /*
- * Returns the size of all the image data of a ktxTexture object in bytes.
+ * Returns the source_size of all the image data of a ktxTexture object in bytes.
  */
 KTX_API ktx_size_t KTX_APIENTRY
 ktxTexture_GetDataSize(ktxTexture* This);
@@ -1080,7 +1080,7 @@ typedef struct ktxBasisParams {
              quality/smaller LZ compressed files. A good range to try is [.2,4].
              Full range is [.001,50.0]. Default is 1.0. */
     ktx_uint32_t uastcRDODictSize;
-        /*!< UASTC RDO dictionary size in bytes. Default is 4096. Lower
+        /*!< UASTC RDO dictionary source_size in bytes. Default is 4096. Lower
              values=faster, but give less compression. Range is [64,65536]. */
     float uastcRDOMaxSmoothBlockErrorScale;
         /*!< UASTC RDO max smooth block error scale. Range is [1,300].
@@ -1419,7 +1419,7 @@ Fixed:
 @li Incorrect BC4 blocksize.
 @li Missing mapping of PVRTC formats from GL to Vulkan.
 @li Incorrect block width and height calculations for sizes that are not
-    a multiple of the block size.
+    a multiple of the block source_size.
 @li Incorrect KTXorientation key in test images.
 
 @section v6 Version 3.0

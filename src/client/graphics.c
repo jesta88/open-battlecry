@@ -677,7 +677,7 @@ static void createSwapchain(u32 width, u32 height, bool vsync)
     result = vkGetSwapchainImagesKHR(s_device, s_swapchain, &s_swapchain_image_count, s_swapchain_images);
     assert(result == VK_SUCCESS);
 
-    wb_log_info("Vulkan swapchain created with size %dx%d and %d images.", extent.width, extent.height,
+    wb_log_info("Vulkan swapchain created with source_size %dx%d and %d images.", extent.width, extent.height,
                 s_swapchain_image_count);
 
     for (u32 i = 0; i < s_swapchain_image_count; i++)
@@ -1046,7 +1046,7 @@ static void savePipelineCache(const char* fileName)
 
         fwrite(cache_data, cache_size, 1, file);
 
-        wb_log_info("Saving pipeline cache of size %d bytes", (u32) cache_size);
+        wb_log_info("Saving pipeline cache of source_size %d bytes", (u32) cache_size);
 
         free(cache_data);
         fclose(file);

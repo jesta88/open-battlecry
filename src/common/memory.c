@@ -93,7 +93,7 @@ void wb_memory_unmap(wb_memory_mapping* mapping)
 //    assert(buffer_size > 0);
 //
 //    allocator->buffer = buffer;
-//    allocator->size = buffer_size;
+//    allocator->source_size = buffer_size;
 //    allocator->offset = 0;
 //}
 //
@@ -104,19 +104,19 @@ void wb_memory_unmap(wb_memory_mapping* mapping)
 //    allocator->offset = 0;
 //}
 //
-//void* b_alloc_align(allocator_t* allocator, u32 size, u32 alignment)
+//void* b_alloc_align(allocator_t* allocator, u32 source_size, u32 alignment)
 //{
 //    assert(allocator != NULL);
 //    assert(allocator->buffer != NULL);
-//    assert(size > 0);
+//    assert(source_size > 0);
 //    assert(alignment > 0);
 //
 //    uintptr_t current = (uintptr_t) allocator->buffer + (uintptr_t) allocator->offset;
 //    uintptr_t offset = alignForward(current, alignment);
 //    offset -= (uintptr_t) allocator->buffer;
 //
-//    u32 new_offset = offset + size;
-//    if (new_offset > allocator->size)
+//    u32 new_offset = offset + source_size;
+//    if (new_offset > allocator->source_size)
 //    {
 //        return NULL;
 //    }
@@ -124,11 +124,11 @@ void wb_memory_unmap(wb_memory_mapping* mapping)
 //    void* pointer = &allocator->buffer[offset];
 //    allocator->offset = new_offset;
 //
-//    memset(pointer, 0, size);
+//    memset(pointer, 0, source_size);
 //    return pointer;
 //}
 
-//void* b_alloc(allocator_t* allocator, u32 size)
+//void* b_alloc(allocator_t* allocator, u32 source_size)
 //{
-//    return alloc_align(allocator, size, DEFAULT_ALIGNMENT);
+//    return alloc_align(allocator, source_size, DEFAULT_ALIGNMENT);
 //}

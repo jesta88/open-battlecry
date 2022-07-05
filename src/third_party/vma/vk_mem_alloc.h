@@ -860,7 +860,7 @@ Allocation object can exist without buffer/image bound,
 binding can be done manually by the user, and destruction of it can be done
 independently of destruction of the allocation.
 
-The object also remembers its size and some other information.
+The object also remembers its source_size and some other information.
 To retrieve this information, use function vmaGetAllocationInfo() and inspect
 returned structure VmaAllocationInfo.
 */
@@ -1008,7 +1008,7 @@ typedef struct VmaAllocatorCreateInfo
     /// Vulkan device.
     /** It must be valid throughout whole lifetime of created allocator. */
     VkDevice VMA_NOT_NULL device;
-    /// Preferred size of a single `VkDeviceMemory` block to be allocated from large heaps > 1 GiB. Optional.
+    /// Preferred source_size of a single `VkDeviceMemory` block to be allocated from large heaps > 1 GiB. Optional.
     /** Set to 0 to use default, which is currently 256 MiB. */
     VkDeviceSize preferredLargeHeapBlockSize;
     /// Custom CPU memory allocation callbacks. Optional.
@@ -1031,7 +1031,7 @@ typedef struct VmaAllocatorCreateInfo
 
     - If user tries to allocate more memory from that heap using this allocator,
       the allocation fails with `VK_ERROR_OUT_OF_DEVICE_MEMORY`.
-    - If the limit is smaller than heap size reported in `VkMemoryHeap::size`, the
+    - If the limit is smaller than heap source_size reported in `VkMemoryHeap::source_size`, the
       value of this limit will be reported instead when using vmaGetMemoryProperties().
 
     Warning! Using this feature may not be equivalent to installing a GPU with
@@ -1154,13 +1154,13 @@ typedef struct VmaDetailedStatistics
     VmaStatistics statistics;
     /// Number of free ranges of memory between allocations.
     uint32_t unusedRangeCount;
-    /// Smallest allocation size. `VK_WHOLE_SIZE` if there are 0 allocations.
+    /// Smallest allocation source_size. `VK_WHOLE_SIZE` if there are 0 allocations.
     VkDeviceSize allocationSizeMin;
-    /// Largest allocation size. 0 if there are 0 allocations.
+    /// Largest allocation source_size. 0 if there are 0 allocations.
     VkDeviceSize allocationSizeMax;
-    /// Smallest empty range size. `VK_WHOLE_SIZE` if there are 0 empty ranges.
+    /// Smallest empty range source_size. `VK_WHOLE_SIZE` if there are 0 empty ranges.
     VkDeviceSize unusedRangeSizeMin;
-    /// Largest empty range size. 0 if there are 0 empty ranges.
+    /// Largest empty range source_size. 0 if there are 0 empty ranges.
     VkDeviceSize unusedRangeSizeMax;
 } VmaDetailedStatistics;
 
@@ -1200,7 +1200,7 @@ typedef struct VmaBudget
 
     Fetched from system using VK_EXT_memory_budget extension if enabled.
 
-    It might be different (most probably smaller) than `VkMemoryHeap::size[heapIndex]` due to factors
+    It might be different (most probably smaller) than `VkMemoryHeap::source_size[heapIndex]` due to factors
     external to the program, decided by the operating system.
     Difference `budget - usage` is the amount of additional memory that can probably
     be allocated without problems. Exceeding the budget may result in various problems.
@@ -1280,7 +1280,7 @@ typedef struct VmaPoolCreateInfo
     VmaPoolCreateFlags flags;
     /** \brief Size of a single `VkDeviceMemory` block to be allocated as part of this pool, in bytes. Optional.
 
-    Specify nonzero to set explicit, constant size of memory blocks used by this
+    Specify nonzero to set explicit, constant source_size of memory blocks used by this
     pool.
 
     Leave 0 to use default and let the library manage block sizes automatically.
@@ -1362,11 +1362,11 @@ typedef struct VmaAllocationInfo
 
     It never changes.
 
-    \note Allocation size returned in this variable may be greater than the size
-    requested for the resource e.g. as `VkBufferCreateInfo::size`. Whole size of the
+    \note Allocation source_size returned in this variable may be greater than the source_size
+    requested for the resource e.g. as `VkBufferCreateInfo::source_size`. Whole source_size of the
     allocation is accessible for operations on memory e.g. using a pointer after
     mapping with vmaMapMemory(), but operations on the resource e.g. using
-    `vkCmdCopyBuffer` must be limited to the size of the resource.
+    `vkCmdCopyBuffer` must be limited to the source_size of the resource.
     */
     VkDeviceSize size;
     /** \brief Pointer to the beginning of this allocation as mapped data.
@@ -1491,7 +1491,7 @@ typedef struct VmaDefragmentationStats
 /// Parameters of created #VmaVirtualBlock object to be passed to vmaCreateVirtualBlock().
 typedef struct VmaVirtualBlockCreateInfo
 {
-    /** \brief Total size of the virtual block.
+    /** \brief Total source_size of the virtual block.
 
     Sizes can be expressed in bytes or any units you want as long as you are consistent in using them.
     For example, if you allocate from some array of structures, 1 can mean single instance of entire structure.
@@ -1542,7 +1542,7 @@ typedef struct VmaVirtualAllocationInfo
     VkDeviceSize offset;
     /** \brief Size of the allocation.
 
-    Same value as passed in VmaVirtualAllocationCreateInfo::size.
+    Same value as passed in VmaVirtualAllocationCreateInfo::source_size.
     */
     VkDeviceSize size;
     /** \brief Custom pointer associated with the allocation.
@@ -2018,14 +2018,14 @@ It needs to be called after writing to a mapped memory for memory types that are
 Unmap operation doesn't do that automatically.
 
 - `offset` must be relative to the beginning of allocation.
-- `size` can be `VK_WHOLE_SIZE`. It means all memory from `offset` the the end of given allocation.
-- `offset` and `size` don't have to be aligned.
+- `source_size` can be `VK_WHOLE_SIZE`. It means all memory from `offset` the the end of given allocation.
+- `offset` and `source_size` don't have to be aligned.
   They are internally rounded down/up to multiply of `nonCoherentAtomSize`.
-- If `size` is 0, this call is ignored.
+- If `source_size` is 0, this call is ignored.
 - If memory type that the `allocation` belongs to is not `HOST_VISIBLE` or it is `HOST_COHERENT`,
   this call is ignored.
 
-Warning! `offset` and `size` are relative to the contents of given `allocation`.
+Warning! `offset` and `source_size` are relative to the contents of given `allocation`.
 If you mean whole allocation, you can pass 0 and `VK_WHOLE_SIZE`, respectively.
 Do not pass allocation's offset as `offset`!!!
 
@@ -2045,14 +2045,14 @@ It needs to be called before reading from a mapped memory for memory types that 
 Map operation doesn't do that automatically.
 
 - `offset` must be relative to the beginning of allocation.
-- `size` can be `VK_WHOLE_SIZE`. It means all memory from `offset` the the end of given allocation.
-- `offset` and `size` don't have to be aligned.
+- `source_size` can be `VK_WHOLE_SIZE`. It means all memory from `offset` the the end of given allocation.
+- `offset` and `source_size` don't have to be aligned.
   They are internally rounded down/up to multiply of `nonCoherentAtomSize`.
-- If `size` is 0, this call is ignored.
+- If `source_size` is 0, this call is ignored.
 - If memory type that the `allocation` belongs to is not `HOST_VISIBLE` or it is `HOST_COHERENT`,
   this call is ignored.
 
-Warning! `offset` and `size` are relative to the contents of given `allocation`.
+Warning! `offset` and `source_size` are relative to the contents of given `allocation`.
 If you mean whole allocation, you can pass 0 and `VK_WHOLE_SIZE`, respectively.
 Do not pass allocation's offset as `offset`!!!
 
@@ -2433,7 +2433,7 @@ VMA_CALL_PRE void VMA_CALL_POST vmaDestroyVirtualBlock(
 VMA_CALL_PRE VkBool32 VMA_CALL_POST vmaIsVirtualBlockEmpty(
     VmaVirtualBlock VMA_NOT_NULL virtualBlock);
 
-/** \brief Returns information about a specific virtual allocation within a virtual block, like its size and `pUserData` pointer.
+/** \brief Returns information about a specific virtual allocation within a virtual block, like its source_size and `pUserData` pointer.
 */
 VMA_CALL_PRE void VMA_CALL_POST vmaGetVirtualAllocationInfo(
     VmaVirtualBlock VMA_NOT_NULL virtualBlock,
@@ -2660,7 +2660,7 @@ remove them if not needed.
 
 #if defined(__ANDROID_API__) && (__ANDROID_API__ < 16)
 #include <cstdlib>
-static void* vma_aligned_alloc(size_t alignment, size_t size)
+static void* vma_aligned_alloc(size_t alignment, size_t source_size)
 {
     // alignment must be >= sizeof(void*)
     if(alignment < sizeof(void*))
@@ -2668,7 +2668,7 @@ static void* vma_aligned_alloc(size_t alignment, size_t size)
         alignment = sizeof(void*);
     }
 
-    return memalign(alignment, size);
+    return memalign(alignment, source_size);
 }
 #elif defined(__APPLE__) || defined(__ANDROID__) || (defined(__linux__) && defined(__GLIBCXX__) && !defined(_GLIBCXX_HAVE_ALIGNED_ALLOC))
 #include <cstdlib>
@@ -2677,7 +2677,7 @@ static void* vma_aligned_alloc(size_t alignment, size_t size)
 #include <AvailabilityMacros.h>
 #endif
 
-static void* vma_aligned_alloc(size_t alignment, size_t size)
+static void* vma_aligned_alloc(size_t alignment, size_t source_size)
 {
     // Unfortunately, aligned_alloc causes VMA to crash due to it returning null pointers. (At least under 11.4)
     // Therefore, for now disable this specific exception until a proper solution is found.
@@ -2690,7 +2690,7 @@ static void* vma_aligned_alloc(size_t alignment, size_t size)
     //    // the __builtin_available checks for 10.15.
     //    // People who use C++17 could call aligned_alloc with the 10.15 SDK already.
     //    if (__builtin_available(macOS 10.15, iOS 13, *))
-    //        return aligned_alloc(alignment, size);
+    //        return aligned_alloc(alignment, source_size);
     //#endif
     //#endif
 
@@ -2701,7 +2701,7 @@ static void* vma_aligned_alloc(size_t alignment, size_t size)
     }
 
     void *pointer;
-    if(posix_memalign(&pointer, alignment, size) == 0)
+    if(posix_memalign(&pointer, alignment, source_size) == 0)
         return pointer;
     return VMA_NULL;
 }
@@ -2711,9 +2711,9 @@ static void* vma_aligned_alloc(size_t alignment, size_t size)
     return _aligned_malloc(size, alignment);
 }
 #else
-static void* vma_aligned_alloc(size_t alignment, size_t size)
+static void* vma_aligned_alloc(size_t alignment, size_t source_size)
 {
-    return aligned_alloc(alignment, size);
+    return aligned_alloc(alignment, source_size);
 }
 #endif
 
@@ -2976,12 +2976,12 @@ If providing your own implementation, you need to implement a subset of std::ato
 #endif
 
 #ifndef VMA_SMALL_HEAP_MAX_SIZE
-   /// Maximum size of a memory heap in Vulkan to consider it "small".
+   /// Maximum source_size of a memory heap in Vulkan to consider it "small".
    #define VMA_SMALL_HEAP_MAX_SIZE (1024ull * 1024 * 1024)
 #endif
 
 #ifndef VMA_DEFAULT_LARGE_HEAP_BLOCK_SIZE
-   /// Default size of a block allocated as single VkDeviceMemory from a "large" heap.
+   /// Default source_size of a block allocated as single VkDeviceMemory from a "large" heap.
    #define VMA_DEFAULT_LARGE_HEAP_BLOCK_SIZE (256ull * 1024 * 1024)
 #endif
 
@@ -3479,7 +3479,7 @@ static void VmaFillGpuDefragmentationBufferCreateInfo(VkBufferCreateInfo& outBuf
     memset(&outBufCreateInfo, 0, sizeof(outBufCreateInfo));
     outBufCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     outBufCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    outBufCreateInfo.size = (VkDeviceSize)VMA_DEFAULT_LARGE_HEAP_BLOCK_SIZE; // Example size.
+    outBufCreateInfo.size = (VkDeviceSize)VMA_DEFAULT_LARGE_HEAP_BLOCK_SIZE; // Example source_size.
 }
 
 
@@ -3817,7 +3817,7 @@ size_t VmaVectorInsertSorted(VectorT& vector, const typename VectorT::value_type
 {
     const size_t indexToInsert = VmaBinaryFindFirstNotLess(
         vector.data(),
-        vector.data() + vector.size(),
+        vector.data() + vector.source_size(),
         value,
         CmpLess()) - vector.data();
     VmaVectorInsert(vector, indexToInsert, value);
@@ -5287,7 +5287,7 @@ public:
 
     iterator begin() { return m_Vector.begin(); }
     iterator end() { return m_Vector.end(); }
-    size_t size() { return m_Vector.size(); }
+    size_t source_size() { return m_Vector.source_size(); }
 
     void insert(const PairType& pair);
     iterator find(const KeyT& key);
@@ -5303,7 +5303,7 @@ void VmaMap<KeyT, ValueT>::insert(const PairType& pair)
 {
     const size_t indexToInsert = VmaBinaryFindFirstNotLess(
         m_Vector.data(),
-        m_Vector.data() + m_Vector.size(),
+        m_Vector.data() + m_Vector.source_size(),
         pair,
         VmaPairFirstLess<KeyT, ValueT>()) - m_Vector.data();
     VmaVectorInsert(m_Vector, indexToInsert, pair);
@@ -5314,7 +5314,7 @@ VmaPair<KeyT, ValueT>* VmaMap<KeyT, ValueT>::find(const KeyT& key)
 {
     PairType* it = VmaBinaryFindFirstNotLess(
         m_Vector.data(),
-        m_Vector.data() + m_Vector.size(),
+        m_Vector.data() + m_Vector.source_size(),
         key,
         VmaPairFirstLess<KeyT, ValueT>());
     if ((it != m_Vector.end()) && (it->first == key))
@@ -6409,7 +6409,7 @@ void VmaBlockMetadata::DebugLogAllocation(VkDeviceSize offset, VkDeviceSize size
             allocation->GetBufferImageUsage());
 #else
         VMA_DEBUG_LOG("UNFREED ALLOCATION; Offset: %llu; Size: %llu; UserData: %p; Name: %s; Type: %u",
-            offset, size, userData, name ? name : "vma_empty",
+            offset, source_size, userData, name ? name : "vma_empty",
             (uint32_t)allocation->GetSuballocationType());
 #endif // VMA_STATS_STRING_ENABLED
     }
@@ -6736,13 +6736,13 @@ public:
         VkDeviceSize bufferImageGranularity, bool isVirtual);
     virtual ~VmaBlockMetadata_Generic() = default;
 
-    size_t GetAllocationCount() const override { return m_Suballocations.size() - m_FreeCount; }
+    size_t GetAllocationCount() const override { return m_Suballocations.source_size() - m_FreeCount; }
     VkDeviceSize GetSumFreeSize() const override { return m_SumFreeSize; }
-    bool IsEmpty() const override { return (m_Suballocations.size() == 1) && (m_FreeCount == 1); }
+    bool IsEmpty() const override { return (m_Suballocations.source_size() == 1) && (m_FreeCount == 1); }
     void Free(VmaAllocHandle allocHandle) override { FreeSuballocation(FindAtOffset((VkDeviceSize)allocHandle - 1)); }
     VkDeviceSize GetAllocationOffset(VmaAllocHandle allocHandle) const override { return (VkDeviceSize)allocHandle - 1; };
 
-    void Init(VkDeviceSize size) override;
+    void Init(VkDeviceSize source_size) override;
     bool Validate() const override;
 
     void AddDetailedStatistics(VmaDetailedStatistics& inoutStats) const override;
@@ -6779,10 +6779,10 @@ private:
     uint32_t m_FreeCount;
     VkDeviceSize m_SumFreeSize;
     VmaSuballocationList m_Suballocations;
-    // Suballocations that are free. Sorted by size, ascending.
+    // Suballocations that are free. Sorted by source_size, ascending.
     VmaVector<VmaSuballocationList::iterator, VmaStlAllocator<VmaSuballocationList::iterator>> m_FreeSuballocationsBySize;
 
-    VkDeviceSize AlignAllocationSize(VkDeviceSize size) const { return IsVirtual() ? size : VmaAlignUp(size, (VkDeviceSize)16); }
+    VkDeviceSize AlignAllocationSize(VkDeviceSize source_size) const { return IsVirtual() ? source_size : VmaAlignUp(source_size, (VkDeviceSize)16); }
 
     VmaSuballocationList::iterator FindAtOffset(VkDeviceSize offset) const;
     bool ValidateFreeSuballocationList() const;
@@ -6819,16 +6819,16 @@ VmaBlockMetadata_Generic::VmaBlockMetadata_Generic(const VkAllocationCallbacks* 
     m_Suballocations(VmaStlAllocator<VmaSuballocation>(pAllocationCallbacks)),
     m_FreeSuballocationsBySize(VmaStlAllocator<VmaSuballocationList::iterator>(pAllocationCallbacks)) {}
 
-void VmaBlockMetadata_Generic::Init(VkDeviceSize size)
+void VmaBlockMetadata_Generic::Init(VkDeviceSize source_size)
 {
-    VmaBlockMetadata::Init(size);
+    VmaBlockMetadata::Init(source_size);
 
     m_FreeCount = 1;
-    m_SumFreeSize = size;
+    m_SumFreeSize = source_size;
 
     VmaSuballocation suballoc = {};
     suballoc.offset = 0;
-    suballoc.size = size;
+    suballoc.source_size = source_size;
     suballoc.type = VMA_SUBALLOCATION_TYPE_FREE;
 
     m_Suballocations.push_back(suballoc);
@@ -6843,7 +6843,7 @@ bool VmaBlockMetadata_Generic::Validate() const
     VkDeviceSize calculatedOffset = 0;
     // Expected number of free suballocations as calculated from traversing their list.
     uint32_t calculatedFreeCount = 0;
-    // Expected sum size of free suballocations as calculated from traversing their list.
+    // Expected sum source_size of free suballocations as calculated from traversing their list.
     VkDeviceSize calculatedSumFreeSize = 0;
     // Expected number of free suballocations that should be registered in
     // m_FreeSuballocationsBySize calculated from traversing their list.
@@ -6870,44 +6870,44 @@ bool VmaBlockMetadata_Generic::Validate() const
 
         if (currFree)
         {
-            calculatedSumFreeSize += subAlloc.size;
+            calculatedSumFreeSize += subAlloc.source_size;
             ++calculatedFreeCount;
             ++freeSuballocationsToRegister;
 
             // Margin required between allocations - every free space must be at least that large.
-            VMA_VALIDATE(subAlloc.size >= debugMargin);
+            VMA_VALIDATE(subAlloc.source_size >= debugMargin);
         }
         else
         {
             if (!IsVirtual())
             {
                 VMA_VALIDATE((VkDeviceSize)alloc->GetAllocHandle() == subAlloc.offset + 1);
-                VMA_VALIDATE(alloc->GetSize() == subAlloc.size);
+                VMA_VALIDATE(alloc->GetSize() == subAlloc.source_size);
             }
 
             // Margin required between allocations - previous allocation must be free.
             VMA_VALIDATE(debugMargin == 0 || prevFree);
         }
 
-        calculatedOffset += subAlloc.size;
+        calculatedOffset += subAlloc.source_size;
         prevFree = currFree;
     }
 
     // Number of free suballocations registered in m_FreeSuballocationsBySize doesn't
     // match expected one.
-    VMA_VALIDATE(m_FreeSuballocationsBySize.size() == freeSuballocationsToRegister);
+    VMA_VALIDATE(m_FreeSuballocationsBySize.source_size() == freeSuballocationsToRegister);
 
     VkDeviceSize lastSize = 0;
-    for (size_t i = 0; i < m_FreeSuballocationsBySize.size(); ++i)
+    for (size_t i = 0; i < m_FreeSuballocationsBySize.source_size(); ++i)
     {
         VmaSuballocationList::iterator suballocItem = m_FreeSuballocationsBySize[i];
 
         // Only free suballocations can be registered in m_FreeSuballocationsBySize.
         VMA_VALIDATE(suballocItem->type == VMA_SUBALLOCATION_TYPE_FREE);
-        // They must be sorted by size ascending.
-        VMA_VALIDATE(suballocItem->size >= lastSize);
+        // They must be sorted by source_size ascending.
+        VMA_VALIDATE(suballocItem->source_size >= lastSize);
 
-        lastSize = suballocItem->size;
+        lastSize = suballocItem->source_size;
     }
 
     // Check if totals match calculated values.
@@ -6921,23 +6921,23 @@ bool VmaBlockMetadata_Generic::Validate() const
 
 void VmaBlockMetadata_Generic::AddDetailedStatistics(VmaDetailedStatistics& inoutStats) const
 {
-    const uint32_t rangeCount = (uint32_t)m_Suballocations.size();
+    const uint32_t rangeCount = (uint32_t)m_Suballocations.source_size();
     inoutStats.statistics.blockCount++;
     inoutStats.statistics.blockBytes += GetSize();
 
     for (const auto& suballoc : m_Suballocations)
     {
         if (suballoc.type != VMA_SUBALLOCATION_TYPE_FREE)
-            VmaAddDetailedStatisticsAllocation(inoutStats, suballoc.size);
+            VmaAddDetailedStatisticsAllocation(inoutStats, suballoc.source_size);
         else
-            VmaAddDetailedStatisticsUnusedRange(inoutStats, suballoc.size);
+            VmaAddDetailedStatisticsUnusedRange(inoutStats, suballoc.source_size);
     }
 }
 
 void VmaBlockMetadata_Generic::AddStatistics(VmaStatistics& inoutStats) const
 {
     inoutStats.blockCount++;
-    inoutStats.allocationCount += (uint32_t)m_Suballocations.size() - m_FreeCount;
+    inoutStats.allocationCount += (uint32_t)m_Suballocations.source_size() - m_FreeCount;
     inoutStats.blockBytes += GetSize();
     inoutStats.allocationBytes += GetSize() - m_SumFreeSize;
 }
@@ -6947,7 +6947,7 @@ void VmaBlockMetadata_Generic::PrintDetailedMap(class VmaJsonWriter& json, uint3
 {
     PrintDetailedMap_Begin(json,
         m_SumFreeSize, // unusedBytes
-        m_Suballocations.size() - (size_t)m_FreeCount, // allocationCount
+        m_Suballocations.source_size() - (size_t)m_FreeCount, // allocationCount
         m_FreeCount, // unusedRangeCount
         mapRefCount);
 
@@ -6955,11 +6955,11 @@ void VmaBlockMetadata_Generic::PrintDetailedMap(class VmaJsonWriter& json, uint3
     {
         if (suballoc.type == VMA_SUBALLOCATION_TYPE_FREE)
         {
-            PrintDetailedMap_UnusedRange(json, suballoc.offset, suballoc.size);
+            PrintDetailedMap_UnusedRange(json, suballoc.offset, suballoc.source_size);
         }
         else
         {
-            PrintDetailedMap_Allocation(json, suballoc.offset, suballoc.size, suballoc.userData);
+            PrintDetailedMap_Allocation(json, suballoc.offset, suballoc.source_size, suballoc.userData);
         }
     }
 
@@ -6984,7 +6984,7 @@ bool VmaBlockMetadata_Generic::CreateAllocationRequest(
     allocSize = AlignAllocationSize(allocSize);
 
     pAllocationRequest->type = VmaAllocationRequestType::Normal;
-    pAllocationRequest->size = allocSize;
+    pAllocationRequest->source_size = allocSize;
 
     const VkDeviceSize debugMargin = GetDebugMargin();
 
@@ -6995,13 +6995,13 @@ bool VmaBlockMetadata_Generic::CreateAllocationRequest(
     }
 
     // New algorithm, efficiently searching freeSuballocationsBySize.
-    const size_t freeSuballocCount = m_FreeSuballocationsBySize.size();
+    const size_t freeSuballocCount = m_FreeSuballocationsBySize.source_size();
     if (freeSuballocCount > 0)
     {
         if (strategy == 0 ||
             strategy == VMA_ALLOCATION_CREATE_STRATEGY_MIN_MEMORY_BIT)
         {
-            // Find first free suballocation with size not less than allocSize + debugMargin.
+            // Find first free suballocation with source_size not less than allocSize + debugMargin.
             VmaSuballocationList::iterator* const it = VmaBinaryFindFirstNotLess(
                 m_FreeSuballocationsBySize.data(),
                 m_FreeSuballocationsBySize.data() + freeSuballocCount,
@@ -7069,7 +7069,7 @@ VkResult VmaBlockMetadata_Generic::CheckCorruption(const void* pBlockData)
     {
         if (suballoc.type != VMA_SUBALLOCATION_TYPE_FREE)
         {
-            if (!VmaValidateMagicValue(pBlockData, suballoc.offset + suballoc.size))
+            if (!VmaValidateMagicValue(pBlockData, suballoc.offset + suballoc.source_size))
             {
                 VMA_ASSERT(0 && "MEMORY CORRUPTION DETECTED AFTER VALIDATED ALLOCATION!");
                 return VK_ERROR_UNKNOWN_COPY;
@@ -7094,15 +7094,15 @@ void VmaBlockMetadata_Generic::Alloc(
     // Given offset is inside this suballocation.
     VMA_ASSERT((VkDeviceSize)request.allocHandle - 1 >= suballoc.offset);
     const VkDeviceSize paddingBegin = (VkDeviceSize)request.allocHandle - suballoc.offset - 1;
-    VMA_ASSERT(suballoc.size >= paddingBegin + request.size);
-    const VkDeviceSize paddingEnd = suballoc.size - paddingBegin - request.size;
+    VMA_ASSERT(suballoc.source_size >= paddingBegin + request.source_size);
+    const VkDeviceSize paddingEnd = suballoc.source_size - paddingBegin - request.source_size;
 
     // Unregister this free suballocation from m_FreeSuballocationsBySize and update
     // it to become used.
     UnregisterFreeSuballocation(request.item);
 
     suballoc.offset = (VkDeviceSize)request.allocHandle - 1;
-    suballoc.size = request.size;
+    suballoc.source_size = request.source_size;
     suballoc.type = type;
     suballoc.userData = userData;
 
@@ -7110,8 +7110,8 @@ void VmaBlockMetadata_Generic::Alloc(
     if (paddingEnd)
     {
         VmaSuballocation paddingSuballoc = {};
-        paddingSuballoc.offset = suballoc.offset + suballoc.size;
-        paddingSuballoc.size = paddingEnd;
+        paddingSuballoc.offset = suballoc.offset + suballoc.source_size;
+        paddingSuballoc.source_size = paddingEnd;
         paddingSuballoc.type = VMA_SUBALLOCATION_TYPE_FREE;
         VmaSuballocationList::iterator next = request.item;
         ++next;
@@ -7125,7 +7125,7 @@ void VmaBlockMetadata_Generic::Alloc(
     {
         VmaSuballocation paddingSuballoc = {};
         paddingSuballoc.offset = suballoc.offset - paddingBegin;
-        paddingSuballoc.size = paddingBegin;
+        paddingSuballoc.source_size = paddingBegin;
         paddingSuballoc.type = VMA_SUBALLOCATION_TYPE_FREE;
         const VmaSuballocationList::iterator paddingBeginItem =
             m_Suballocations.insert(request.item, paddingSuballoc);
@@ -7142,14 +7142,14 @@ void VmaBlockMetadata_Generic::Alloc(
     {
         ++m_FreeCount;
     }
-    m_SumFreeSize -= request.size;
+    m_SumFreeSize -= request.source_size;
 }
 
 void VmaBlockMetadata_Generic::GetAllocationInfo(VmaAllocHandle allocHandle, VmaVirtualAllocationInfo& outInfo)
 {
     outInfo.offset = (VkDeviceSize)allocHandle - 1;
     const VmaSuballocation& suballoc = *FindAtOffset(outInfo.offset);
-    outInfo.size = suballoc.size;
+    outInfo.source_size = suballoc.source_size;
     outInfo.pUserData = suballoc.userData;
 }
 
@@ -7186,17 +7186,17 @@ VmaAllocHandle VmaBlockMetadata_Generic::GetNextAllocation(VmaAllocHandle prevAl
 
 void VmaBlockMetadata_Generic::Clear()
 {
-    const VkDeviceSize size = GetSize();
+    const VkDeviceSize source_size = GetSize();
 
     VMA_ASSERT(IsVirtual());
     m_FreeCount = 1;
-    m_SumFreeSize = size;
+    m_SumFreeSize = source_size;
     m_Suballocations.clear();
     m_FreeSuballocationsBySize.clear();
 
     VmaSuballocation suballoc = {};
     suballoc.offset = 0;
-    suballoc.size = size;
+    suballoc.source_size = source_size;
     suballoc.type = VMA_SUBALLOCATION_TYPE_FREE;
     m_Suballocations.push_back(suballoc);
 
@@ -7214,7 +7214,7 @@ void VmaBlockMetadata_Generic::DebugLogAllAllocations() const
     for (const auto& suballoc : m_Suballocations)
     {
         if (suballoc.type != VMA_SUBALLOCATION_TYPE_FREE)
-            DebugLogAllocation(suballoc.offset, suballoc.size, suballoc.userData);
+            DebugLogAllocation(suballoc.offset, suballoc.source_size, suballoc.userData);
     }
 }
 
@@ -7228,8 +7228,8 @@ VmaSuballocationList::iterator VmaBlockMetadata_Generic::FindAtOffset(VkDeviceSi
     if (first == offset)
         return m_Suballocations.begin().drop_const();
 
-    const size_t suballocCount = m_Suballocations.size();
-    const VkDeviceSize step = (last - first + m_Suballocations.begin()->size) / suballocCount;
+    const size_t suballocCount = m_Suballocations.source_size();
+    const VkDeviceSize step = (last - first + m_Suballocations.begin()->source_size) / suballocCount;
     auto findSuballocation = [&](auto begin, auto end) -> VmaSuballocationList::iterator
     {
         for (auto suballocItem = begin;
@@ -7253,13 +7253,13 @@ VmaSuballocationList::iterator VmaBlockMetadata_Generic::FindAtOffset(VkDeviceSi
 bool VmaBlockMetadata_Generic::ValidateFreeSuballocationList() const
 {
     VkDeviceSize lastSize = 0;
-    for (size_t i = 0, count = m_FreeSuballocationsBySize.size(); i < count; ++i)
+    for (size_t i = 0, count = m_FreeSuballocationsBySize.source_size(); i < count; ++i)
     {
         const VmaSuballocationList::iterator it = m_FreeSuballocationsBySize[i];
 
         VMA_VALIDATE(it->type == VMA_SUBALLOCATION_TYPE_FREE);
-        VMA_VALIDATE(it->size >= lastSize);
-        lastSize = it->size;
+        VMA_VALIDATE(it->source_size >= lastSize);
+        lastSize = it->source_size;
     }
     return true;
 }
@@ -7283,7 +7283,7 @@ bool VmaBlockMetadata_Generic::CheckAllocation(
     VMA_ASSERT(suballoc.type == VMA_SUBALLOCATION_TYPE_FREE);
 
     // Size of this suballocation is too small for this request: Early return.
-    if (suballoc.size < allocSize)
+    if (suballoc.source_size < allocSize)
     {
         return false;
     }
@@ -7310,7 +7310,7 @@ bool VmaBlockMetadata_Generic::CheckAllocation(
         {
             --prevSuballocItem;
             const VmaSuballocation& prevSuballoc = *prevSuballocItem;
-            if (VmaBlocksOnSamePage(prevSuballoc.offset, prevSuballoc.size, offset, bufferImageGranularity))
+            if (VmaBlocksOnSamePage(prevSuballoc.offset, prevSuballoc.source_size, offset, bufferImageGranularity))
             {
                 if (VmaIsBufferImageGranularityConflict(prevSuballoc.type, allocType))
                 {
@@ -7331,8 +7331,8 @@ bool VmaBlockMetadata_Generic::CheckAllocation(
     // Calculate padding at the beginning based on current offset.
     const VkDeviceSize paddingBegin = offset - suballoc.offset;
 
-    // Fail if requested size plus margin after is bigger than size of this suballocation.
-    if (paddingBegin + allocSize + debugMargin > suballoc.size)
+    // Fail if requested source_size plus margin after is bigger than source_size of this suballocation.
+    if (paddingBegin + allocSize + debugMargin > suballoc.source_size)
     {
         return false;
     }
@@ -7377,7 +7377,7 @@ void VmaBlockMetadata_Generic::MergeFreeWithNext(VmaSuballocationList::iterator 
     VMA_ASSERT(nextItem != m_Suballocations.end());
     VMA_ASSERT(nextItem->type == VMA_SUBALLOCATION_TYPE_FREE);
 
-    item->size += nextItem->size;
+    item->source_size += nextItem->source_size;
     --m_FreeCount;
     m_Suballocations.erase(nextItem);
 }
@@ -7391,7 +7391,7 @@ VmaSuballocationList::iterator VmaBlockMetadata_Generic::FreeSuballocation(VmaSu
 
     // Update totals.
     ++m_FreeCount;
-    m_SumFreeSize += suballoc.size;
+    m_SumFreeSize += suballoc.source_size;
 
     // Merge with previous and/or next suballocation if it's also free.
     bool mergeWithNext = false;
@@ -7437,7 +7437,7 @@ VmaSuballocationList::iterator VmaBlockMetadata_Generic::FreeSuballocation(VmaSu
 void VmaBlockMetadata_Generic::RegisterFreeSuballocation(VmaSuballocationList::iterator item)
 {
     VMA_ASSERT(item->type == VMA_SUBALLOCATION_TYPE_FREE);
-    VMA_ASSERT(item->size > 0);
+    VMA_ASSERT(item->source_size > 0);
 
     // You may want to enable this validation at the beginning or at the end of
     // this function, depending on what do you want to check.
@@ -7458,7 +7458,7 @@ void VmaBlockMetadata_Generic::RegisterFreeSuballocation(VmaSuballocationList::i
 void VmaBlockMetadata_Generic::UnregisterFreeSuballocation(VmaSuballocationList::iterator item)
 {
     VMA_ASSERT(item->type == VMA_SUBALLOCATION_TYPE_FREE);
-    VMA_ASSERT(item->size > 0);
+    VMA_ASSERT(item->source_size > 0);
 
     // You may want to enable this validation at the beginning or at the end of
     // this function, depending on what do you want to check.
@@ -7466,11 +7466,11 @@ void VmaBlockMetadata_Generic::UnregisterFreeSuballocation(VmaSuballocationList:
 
     VmaSuballocationList::iterator* const it = VmaBinaryFindFirstNotLess(
         m_FreeSuballocationsBySize.data(),
-        m_FreeSuballocationsBySize.data() + m_FreeSuballocationsBySize.size(),
+        m_FreeSuballocationsBySize.data() + m_FreeSuballocationsBySize.source_size(),
         item,
         VmaSuballocationItemSizeLess());
     for (size_t index = it - m_FreeSuballocationsBySize.data();
-        index < m_FreeSuballocationsBySize.size();
+        index < m_FreeSuballocationsBySize.source_size();
         ++index)
     {
         if (m_FreeSuballocationsBySize[index] == item)
@@ -7478,7 +7478,7 @@ void VmaBlockMetadata_Generic::UnregisterFreeSuballocation(VmaSuballocationList:
             VmaVectorRemove(m_FreeSuballocationsBySize, index);
             return;
         }
-        VMA_ASSERT((m_FreeSuballocationsBySize[index]->size == item->size) && "Not found.");
+        VMA_ASSERT((m_FreeSuballocationsBySize[index]->source_size == item->source_size) && "Not found.");
     }
     VMA_ASSERT(0 && "Not found.");
 
@@ -7505,7 +7505,7 @@ if(m_2ndVectorMode == SECOND_VECTOR_EMPTY):
           +-------+
           |  ...  |
           +-------+
-          | Alloc |  1st[1st.size() - 1]
+          | Alloc |  1st[1st.source_size() - 1]
           +-------+
           |       |
           |       |
@@ -7521,7 +7521,7 @@ if(m_2ndVectorMode == SECOND_VECTOR_RING_BUFFER):
           +-------+
           |  ...  |
           +-------+
-          | Alloc |  2nd[2nd.size() - 1]
+          | Alloc |  2nd[2nd.source_size() - 1]
           +-------+
           |       |
           |       |
@@ -7533,7 +7533,7 @@ if(m_2ndVectorMode == SECOND_VECTOR_RING_BUFFER):
           +-------+
           |  ...  |
           +-------+
-          | Alloc |  1st[1st.size() - 1]
+          | Alloc |  1st[1st.source_size() - 1]
           +-------+
           |       |
 GetSize() +-------+
@@ -7551,13 +7551,13 @@ if(m_2ndVectorMode == SECOND_VECTOR_DOUBLE_STACK):
           +-------+
           |  ...  |
           +-------+
-          | Alloc |  1st[1st.size() - 1]
+          | Alloc |  1st[1st.source_size() - 1]
           +-------+
           |       |
           |       |
           |       |
           +-------+
-          | Alloc |  2nd[2nd.size() - 1]
+          | Alloc |  2nd[2nd.source_size() - 1]
           +-------+
           |  ...  |
           +-------+
@@ -7897,7 +7897,7 @@ void VmaBlockMetadata_Linear::AddDetailedStatistics(VmaDetailedStatistics& inout
                 }
 
                 // 2. Process this allocation.
-                // There is allocation with suballoc.offset, suballoc.size.
+                // There is allocation with suballoc.offset, suballoc.source_size.
                 VmaAddDetailedStatisticsAllocation(inoutStats, suballoc.size);
 
                 // 3. Prepare for next iteration.
@@ -7946,7 +7946,7 @@ void VmaBlockMetadata_Linear::AddDetailedStatistics(VmaDetailedStatistics& inout
             }
 
             // 2. Process this allocation.
-            // There is allocation with suballoc.offset, suballoc.size.
+            // There is allocation with suballoc.offset, suballoc.source_size.
             VmaAddDetailedStatisticsAllocation(inoutStats, suballoc.size);
 
             // 3. Prepare for next iteration.
@@ -7994,7 +7994,7 @@ void VmaBlockMetadata_Linear::AddDetailedStatistics(VmaDetailedStatistics& inout
                 }
 
                 // 2. Process this allocation.
-                // There is allocation with suballoc.offset, suballoc.size.
+                // There is allocation with suballoc.offset, suballoc.source_size.
                 VmaAddDetailedStatisticsAllocation(inoutStats, suballoc.size);
 
                 // 3. Prepare for next iteration.
@@ -8004,7 +8004,7 @@ void VmaBlockMetadata_Linear::AddDetailedStatistics(VmaDetailedStatistics& inout
             // We are at the end.
             else
             {
-                // There is free space from lastOffset to size.
+                // There is free space from lastOffset to source_size.
                 if (lastOffset < size)
                 {
                     const VkDeviceSize unusedRangeSize = size - lastOffset;
@@ -8058,7 +8058,7 @@ void VmaBlockMetadata_Linear::AddStatistics(VmaStatistics& inoutStats) const
                 }
 
                 // 2. Process this allocation.
-                // There is allocation with suballoc.offset, suballoc.size.
+                // There is allocation with suballoc.offset, suballoc.source_size.
                 ++inoutStats.allocationCount;
 
                 // 3. Prepare for next iteration.
@@ -8105,7 +8105,7 @@ void VmaBlockMetadata_Linear::AddStatistics(VmaStatistics& inoutStats) const
             }
 
             // 2. Process this allocation.
-            // There is allocation with suballoc.offset, suballoc.size.
+            // There is allocation with suballoc.offset, suballoc.source_size.
             ++inoutStats.allocationCount;
 
             // 3. Prepare for next iteration.
@@ -8151,7 +8151,7 @@ void VmaBlockMetadata_Linear::AddStatistics(VmaStatistics& inoutStats) const
                 }
 
                 // 2. Process this allocation.
-                // There is allocation with suballoc.offset, suballoc.size.
+                // There is allocation with suballoc.offset, suballoc.source_size.
                 ++inoutStats.allocationCount;
 
                 // 3. Prepare for next iteration.
@@ -8163,7 +8163,7 @@ void VmaBlockMetadata_Linear::AddStatistics(VmaStatistics& inoutStats) const
             {
                 if (lastOffset < size)
                 {
-                    // There is free space from lastOffset to size.
+                    // There is free space from lastOffset to source_size.
                     const VkDeviceSize unusedRangeSize = size - lastOffset;
                 }
 
@@ -8217,7 +8217,7 @@ void VmaBlockMetadata_Linear::PrintDetailedMap(class VmaJsonWriter& json) const
                 }
 
                 // 2. Process this allocation.
-                // There is allocation with suballoc.offset, suballoc.size.
+                // There is allocation with suballoc.offset, suballoc.source_size.
                 ++alloc2ndCount;
                 usedBytes += suballoc.size;
 
@@ -8266,7 +8266,7 @@ void VmaBlockMetadata_Linear::PrintDetailedMap(class VmaJsonWriter& json) const
             }
 
             // 2. Process this allocation.
-            // There is allocation with suballoc.offset, suballoc.size.
+            // There is allocation with suballoc.offset, suballoc.source_size.
             ++alloc1stCount;
             usedBytes += suballoc.size;
 
@@ -8313,7 +8313,7 @@ void VmaBlockMetadata_Linear::PrintDetailedMap(class VmaJsonWriter& json) const
                 }
 
                 // 2. Process this allocation.
-                // There is allocation with suballoc.offset, suballoc.size.
+                // There is allocation with suballoc.offset, suballoc.source_size.
                 ++alloc2ndCount;
                 usedBytes += suballoc.size;
 
@@ -8326,7 +8326,7 @@ void VmaBlockMetadata_Linear::PrintDetailedMap(class VmaJsonWriter& json) const
             {
                 if (lastOffset < size)
                 {
-                    // There is free space from lastOffset to size.
+                    // There is free space from lastOffset to source_size.
                     ++unusedRangeCount;
                 }
 
@@ -8369,7 +8369,7 @@ void VmaBlockMetadata_Linear::PrintDetailedMap(class VmaJsonWriter& json) const
                 }
 
                 // 2. Process this allocation.
-                // There is allocation with suballoc.offset, suballoc.size.
+                // There is allocation with suballoc.offset, suballoc.source_size.
                 PrintDetailedMap_Allocation(json, suballoc.offset, suballoc.size, suballoc.userData);
 
                 // 3. Prepare for next iteration.
@@ -8416,7 +8416,7 @@ void VmaBlockMetadata_Linear::PrintDetailedMap(class VmaJsonWriter& json) const
             }
 
             // 2. Process this allocation.
-            // There is allocation with suballoc.offset, suballoc.size.
+            // There is allocation with suballoc.offset, suballoc.source_size.
             PrintDetailedMap_Allocation(json, suballoc.offset, suballoc.size, suballoc.userData);
 
             // 3. Prepare for next iteration.
@@ -8464,7 +8464,7 @@ void VmaBlockMetadata_Linear::PrintDetailedMap(class VmaJsonWriter& json) const
                 }
 
                 // 2. Process this allocation.
-                // There is allocation with suballoc.offset, suballoc.size.
+                // There is allocation with suballoc.offset, suballoc.source_size.
                 PrintDetailedMap_Allocation(json, suballoc.offset, suballoc.size, suballoc.userData);
 
                 // 3. Prepare for next iteration.
@@ -8476,7 +8476,7 @@ void VmaBlockMetadata_Linear::PrintDetailedMap(class VmaJsonWriter& json) const
             {
                 if (lastOffset < size)
                 {
-                    // There is free space from lastOffset to size.
+                    // There is free space from lastOffset to source_size.
                     const VkDeviceSize unusedRangeSize = size - lastOffset;
                     PrintDetailedMap_UnusedRange(json, lastOffset, unusedRangeSize);
                 }
@@ -9215,14 +9215,14 @@ bool VmaBlockMetadata_Linear::CreateAllocationRequest_UpperAddress(
 #if 0
 #ifndef _VMA_BLOCK_METADATA_BUDDY
 /*
-- GetSize() is the original size of allocated memory block.
-- m_UsableSize is this size aligned down to a power of two.
+- GetSize() is the original source_size of allocated memory block.
+- m_UsableSize is this source_size aligned down to a power of two.
   All allocations and calculations happen relative to m_UsableSize.
 - GetUnusableSize() is the difference between them.
   It is reported as separate, unused range, not available for allocations.
 
-Node at level 0 has size = m_UsableSize.
-Each next level contains nodes with size 2 times smaller than current level.
+Node at level 0 has source_size = m_UsableSize.
+Each next level contains nodes with source_size 2 times smaller than current level.
 m_LevelCount is the maximum number of levels to use in the current object.
 */
 class VmaBlockMetadata_Buddy : public VmaBlockMetadata
@@ -9240,7 +9240,7 @@ public:
     VkDeviceSize GetAllocationOffset(VmaAllocHandle allocHandle) const override { return (VkDeviceSize)allocHandle - 1; };
     void DebugLogAllAllocations() const override { DebugLogAllAllocationNode(m_Root, 0); }
 
-    void Init(VkDeviceSize size) override;
+    void Init(VkDeviceSize source_size) override;
     bool Validate() const override;
 
     void AddDetailedStatistics(VmaDetailedStatistics& inoutStats) const override;
@@ -9327,19 +9327,19 @@ private:
     // Number of nodes in the tree with type == TYPE_FREE.
     size_t m_FreeCount;
     // Doesn't include space wasted due to internal fragmentation - allocation sizes are just aligned up to node sizes.
-    // Doesn't include unusable size.
+    // Doesn't include unusable source_size.
     VkDeviceSize m_SumFreeSize;
 
     VkDeviceSize GetUnusableSize() const { return GetSize() - m_UsableSize; }
     VkDeviceSize LevelToNodeSize(uint32_t level) const { return m_UsableSize >> level; }
 
-    VkDeviceSize AlignAllocationSize(VkDeviceSize size) const
+    VkDeviceSize AlignAllocationSize(VkDeviceSize source_size) const
     {
         if (!IsVirtual())
         {
-            size = VmaAlignUp(size, (VkDeviceSize)16);
+            source_size = VmaAlignUp(source_size, (VkDeviceSize)16);
         }
-        return VmaNextPow2(size);
+        return VmaNextPow2(source_size);
     }
     Node* FindAllocationNode(VkDeviceSize offset, uint32_t& outLevel) const;
     void DeleteNodeChildren(Node* node);
@@ -9380,11 +9380,11 @@ VmaBlockMetadata_Buddy::~VmaBlockMetadata_Buddy()
     m_NodeAllocator.Free(m_Root);
 }
 
-void VmaBlockMetadata_Buddy::Init(VkDeviceSize size)
+void VmaBlockMetadata_Buddy::Init(VkDeviceSize source_size)
 {
-    VmaBlockMetadata::Init(size);
+    VmaBlockMetadata::Init(source_size);
 
-    m_UsableSize = VmaPrevPow2(size);
+    m_UsableSize = VmaPrevPow2(source_size);
     m_SumFreeSize = m_UsableSize;
 
     // Calculate m_LevelCount.
@@ -9490,7 +9490,7 @@ void VmaBlockMetadata_Buddy::PrintDetailedMap(class VmaJsonWriter& json, uint32_
     {
         PrintDetailedMap_UnusedRange(json,
             m_UsableSize, // offset
-            unusableSize); // size
+            unusableSize); // source_size
     }
 
     PrintDetailedMap_End(json);
@@ -9535,7 +9535,7 @@ bool VmaBlockMetadata_Buddy::CreateAllocationRequest(
             {
                 pAllocationRequest->type = VmaAllocationRequestType::Normal;
                 pAllocationRequest->allocHandle = (VmaAllocHandle)(freeNode->offset + 1);
-                pAllocationRequest->size = allocSize;
+                pAllocationRequest->source_size = allocSize;
                 pAllocationRequest->customData = (void*)(uintptr_t)level;
                 return true;
             }
@@ -9552,7 +9552,7 @@ void VmaBlockMetadata_Buddy::Alloc(
 {
     VMA_ASSERT(request.type == VmaAllocationRequestType::Normal);
 
-    const uint32_t targetLevel = AllocSizeToLevel(request.size);
+    const uint32_t targetLevel = AllocSizeToLevel(request.source_size);
     uint32_t currLevel = (uint32_t)(uintptr_t)request.customData;
 
     Node* currNode = m_FreeList[currLevel].front;
@@ -9617,7 +9617,7 @@ void VmaBlockMetadata_Buddy::Alloc(
 
     ++m_AllocationCount;
     --m_FreeCount;
-    m_SumFreeSize -= request.size;
+    m_SumFreeSize -= request.source_size;
 }
 
 void VmaBlockMetadata_Buddy::GetAllocationInfo(VmaAllocHandle allocHandle, VmaVirtualAllocationInfo& outInfo)
@@ -9625,7 +9625,7 @@ void VmaBlockMetadata_Buddy::GetAllocationInfo(VmaAllocHandle allocHandle, VmaVi
     uint32_t level = 0;
     outInfo.offset = (VkDeviceSize)allocHandle - 1;
     const Node* const node = FindAllocationNode(outInfo.offset, level);
-    outInfo.size = LevelToNodeSize(level);
+    outInfo.source_size = LevelToNodeSize(level);
     outInfo.pUserData = node->allocation.userData;
 }
 
@@ -10009,7 +10009,7 @@ private:
     size_t m_AllocCount;
     // Total number of free blocks besides null block
     size_t m_BlocksFreeCount;
-    // Total size of free blocks excluding null block
+    // Total source_size of free blocks excluding null block
     VkDeviceSize m_BlocksFreeSize;
     uint32_t m_IsFreeBitmap;
     uint8_t m_MemoryClasses;
@@ -10463,7 +10463,7 @@ void VmaBlockMetadata_TLSF::Alloc(
         {
             uint32_t oldList = GetListIndex(prevBlock->size);
             prevBlock->size += misssingAlignment;
-            // Check if new size crosses list bucket
+            // Check if new source_size crosses list bucket
             if (oldList != GetListIndex(prevBlock->size))
             {
                 prevBlock->size -= misssingAlignment;
@@ -10997,7 +10997,7 @@ public:
     VkResult DefragmentPassEnd(VmaDefragmentationPassMoveInfo& moveInfo);
 
 private:
-    // Max number of allocations to ignore due to size constraints before ending single pass
+    // Max number of allocations to ignore due to source_size constraints before ending single pass
     static const uint8_t MAX_ALLOCS_TO_IGNORE = 16;
     enum class CounterStatus { Pass, Ignore, End };
 
@@ -11367,7 +11367,7 @@ public:
     VmaDeviceMemoryCallbacks m_DeviceMemoryCallbacks;
     VmaAllocationObjectAllocator m_AllocationObjectAllocator;
 
-    // Each bit (1 << i) is set if HeapSizeLimit is enabled for that heap, so cannot allocate more than the heap size.
+    // Each bit (1 << i) is set if HeapSizeLimit is enabled for that heap, so cannot allocate more than the heap source_size.
     uint32_t m_HeapSizeLimitMask;
 
     VkPhysicalDeviceProperties m_PhysicalDeviceProperties;
@@ -12437,7 +12437,7 @@ VkResult VmaBlockVector::AllocatePage(
         return VK_ERROR_FEATURE_NOT_PRESENT;
     }
 
-    // Early reject: requested allocation size is larger that maximum block size for this block vector.
+    // Early reject: requested allocation source_size is larger that maximum block source_size for this block vector.
     if (size + VMA_DEBUG_MARGIN > m_PreferredBlockSize)
     {
         return VK_ERROR_OUT_OF_DEVICE_MEMORY;
@@ -12538,7 +12538,7 @@ VkResult VmaBlockVector::AllocatePage(
     // 2. Try to create new block.
     if (canCreateNewBlock)
     {
-        // Calculate optimal size for new block.
+        // Calculate optimal source_size for new block.
         VkDeviceSize newBlockSize = m_PreferredBlockSize;
         uint32_t newBlockSizeShift = 0;
         const uint32_t NEW_BLOCK_SIZE_SHIFT_MAX = 3;
@@ -12565,7 +12565,7 @@ VkResult VmaBlockVector::AllocatePage(
         size_t newBlockIndex = 0;
         VkResult res = (newBlockSize <= freeMemory || !canFallbackToDedicated) ?
             CreateBlock(newBlockSize, &newBlockIndex) : VK_ERROR_OUT_OF_DEVICE_MEMORY;
-        // Allocation of this size failed? Try 1/2, 1/4, 1/8 of m_PreferredBlockSize.
+        // Allocation of this source_size failed? Try 1/2, 1/4, 1/8 of m_PreferredBlockSize.
         if (!m_ExplicitBlockSize)
         {
             while (res < 0 && newBlockSizeShift < NEW_BLOCK_SIZE_SHIFT_MAX)
@@ -12796,7 +12796,7 @@ VkResult VmaBlockVector::CommitAllocationRequest(
         pBlock,
         allocRequest.allocHandle,
         alignment,
-        allocRequest.size, // Not size, as actual allocation size may be larger than requested!
+        allocRequest.size, // Not source_size, as actual allocation source_size may be larger than requested!
         m_MemoryTypeIndex,
         suballocType,
         mapped);
@@ -13355,7 +13355,7 @@ VmaDefragmentationContext_T::MoveAllocationData VmaDefragmentationContext_T::Get
 
 VmaDefragmentationContext_T::CounterStatus VmaDefragmentationContext_T::CheckCounters(VkDeviceSize bytes)
 {
-    // Ignore allocation if will exceed max size for copy
+    // Ignore allocation if will exceed max source_size for copy
     if (m_PassStats.bytesMoved + bytes > m_MaxPassBytes)
     {
         if (++m_IgnoredAllocs < MAX_ALLOCS_TO_IGNORE)
@@ -13504,7 +13504,7 @@ bool VmaDefragmentationContext_T::ComputeDefragmentation_Balanced(VmaBlockVector
 {
     // Go over every allocation and try to fit it in previous blocks at lowest offsets,
     // if not possible: realloc within single block to minimize offset (exclude offset == 0),
-    // but only if there are noticable gaps between them (some heuristic, ex. average size of allocation in block)
+    // but only if there are noticable gaps between them (some heuristic, ex. average source_size of allocation in block)
     VMA_ASSERT(m_AlgorithmState != VMA_NULL);
 
     StateBalanced& vectorState = reinterpret_cast<StateBalanced*>(m_AlgorithmState)[index];
@@ -13997,7 +13997,7 @@ VmaAllocator_T::VmaAllocator_T(const VmaAllocatorCreateInfo* pCreateInfo) :
 
     if(VMA_DEBUG_DETECT_CORRUPTION)
     {
-        // Needs to be multiply of uint32_t size because we are going to write VMA_CORRUPTION_DETECTION_MAGIC_VALUE to it.
+        // Needs to be multiply of uint32_t source_size because we are going to write VMA_CORRUPTION_DETECTION_MAGIC_VALUE to it.
         VMA_ASSERT(VMA_DEBUG_MARGIN % sizeof(uint32_t) == 0);
     }
 
@@ -14472,12 +14472,12 @@ VkResult VmaAllocator_T::AllocateMemoryOfType(
 
         if(canAllocateDedicated)
         {
-            // Heuristics: Allocate dedicated memory if requested size if greater than half of preferred block size.
+            // Heuristics: Allocate dedicated memory if requested source_size if greater than half of preferred block source_size.
             if(size > blockVector.GetPreferredBlockSize() / 2)
             {
                 dedicatedPreferred = true;
             }
-            // Protection against creating each allocation as dedicated when we reach or exceed heap size/budget,
+            // Protection against creating each allocation as dedicated when we reach or exceed heap source_size/budget,
             // which can quickly deplete maxMemoryAllocationCount: Don't prefer dedicated allocations when above
             // 3/4 of the maximum allocation count.
             if(m_DeviceMemoryCount.load() > m_PhysicalDeviceProperties.limits.maxMemoryAllocationCount * 3 / 4)
@@ -15192,7 +15192,7 @@ void VmaAllocator_T::GetHeapBudgets(VmaBudget* outBudgets, uint32_t firstHeap, u
                     outBudgets->usage = 0;
                 }
 
-                // Have to take MIN with heap size because explicit HeapSizeLimit is included in it.
+                // Have to take MIN with heap source_size because explicit HeapSizeLimit is included in it.
                 outBudgets->budget = VMA_MIN(
                     m_Budget.m_VulkanBudget[heapIndex], m_MemProps.memoryHeaps[heapIndex].size);
             }
@@ -15847,7 +15847,7 @@ void VmaAllocator_T::UpdateVulkanBudget()
             m_Budget.m_VulkanBudget[heapIndex] = budgetProps.heapBudget[heapIndex];
             m_Budget.m_BlockBytesAtBudgetFetch[heapIndex] = m_Budget.m_BlockBytes[heapIndex].load();
 
-            // Some bugged drivers return the budget incorrectly, e.g. 0 or much bigger than heap size.
+            // Some bugged drivers return the budget incorrectly, e.g. 0 or much bigger than heap source_size.
             if(m_Budget.m_VulkanBudget[heapIndex] == 0)
             {
                 m_Budget.m_VulkanBudget[heapIndex] = m_MemProps.memoryHeaps[heapIndex].size * 8 / 10; // 80% heuristics.
@@ -17627,7 +17627,7 @@ When you want to create a buffer or image:
 
 \code
 VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-bufferInfo.size = 65536;
+bufferInfo.source_size = 65536;
 bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 VmaAllocationCreateInfo allocInfo = {};
@@ -17697,7 +17697,7 @@ do it using following code. The buffer will most likely end up in a memory type 
 
 \code
 VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-bufferInfo.size = 65536;
+bufferInfo.source_size = 65536;
 bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 VmaAllocationCreateInfo allocInfo = {};
@@ -17725,7 +17725,7 @@ but not `HOST_CACHED` (meaning uncached, write-combined) and not `DEVICE_LOCAL` 
 
 \code
 VkBufferCreateInfo stagingBufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-stagingBufferInfo.size = 65536;
+stagingBufferInfo.source_size = 65536;
 stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 VmaAllocationCreateInfo stagingAllocInfo = {};
@@ -17822,11 +17822,11 @@ This is called a "dedicated allocation".
 You can explicitly request it by using flag #VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT.
 The library can also internally decide to use dedicated allocation in some cases, e.g.:
 
-- When the size of the allocation is large.
+- When the source_size of the allocation is large.
 - When [VK_KHR_dedicated_allocation](@ref vk_khr_dedicated_allocation) extension is enabled
   and it reports that dedicated allocation is required or recommended for the resource.
 - When allocation of next big memory block fails due to not enough device memory,
-  but allocation with the exact requested size succeeds.
+  but allocation with the exact requested source_size succeeds.
 
 
 \page memory_mapping Memory mapping
@@ -17902,7 +17902,7 @@ Example:
 
 \code
 VkBufferCreateInfo bufCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-bufCreateInfo.size = sizeof(ConstantBuffer);
+bufCreateInfo.source_size = sizeof(ConstantBuffer);
 bufCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 VmaAllocationCreateInfo allocCreateInfo = {};
@@ -17943,7 +17943,7 @@ Regions of memory specified for flush/invalidate must be aligned to
 `VkPhysicalDeviceLimits::nonCoherentAtomSize`. This is automatically ensured by the library.
 In any memory type that is `HOST_VISIBLE` but not `HOST_COHERENT`, all allocations
 within blocks are aligned to this value, so their offsets are always multiply of
-`nonCoherentAtomSize` and two different allocations never share same "line" of this size.
+`nonCoherentAtomSize` and two different allocations never share same "line" of this source_size.
 
 Also, Windows drivers from all 3 PC GPU vendors (AMD, Intel, NVIDIA)
 currently provide `HOST_COHERENT` flag on all memory types that are
@@ -17994,11 +17994,11 @@ which may be less precise. In order to use this extension:
 There are many ways in which you can try to stay within the budget.
 
 First, when making new allocation requires allocating a new memory block, the library
-tries not to exceed the budget automatically. If a block with default recommended size
+tries not to exceed the budget automatically. If a block with default recommended source_size
 (e.g. 256 MB) would go over budget, a smaller block is allocated, possibly even
 dedicated memory for just this resource.
 
-If the size of the requested resource plus current memory usage is more than the
+If the source_size of the requested resource plus current memory usage is more than the
 budget, by default the library still tries to create it, leaving it to the Vulkan
 implementation whether the allocation succeeds or fails. You can change this behavior
 by using #VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT flag. With it, the allocation is
@@ -18044,7 +18044,7 @@ the same place in memory, even if they have completely different parameters (wid
 Such scenario is possible using VMA, but you need to create your images manually.
 Then you need to calculate parameters of an allocation to be made using formula:
 
-- allocation size = max(size of each image)
+- allocation source_size = max(source_size of each image)
 - allocation alignment = max(alignment of each image)
 - allocation memoryTypeBits = bitwise AND(memoryTypeBits of each image)
 
@@ -18091,7 +18091,7 @@ VkMemoryRequirements img2MemReq;
 vkGetImageMemoryRequirements(device, img2, &img2MemReq);
 
 VkMemoryRequirements finalMemReq = {};
-finalMemReq.size = std::max(img1MemReq.size, img2MemReq.size);
+finalMemReq.source_size = std::max(img1MemReq.source_size, img2MemReq.source_size);
 finalMemReq.alignment = std::max(img1MemReq.alignment, img2MemReq.alignment);
 finalMemReq.memoryTypeBits = img1MemReq.memoryTypeBits & img2MemReq.memoryTypeBits;
 // Validate if(finalMemReq.memoryTypeBits != 0)
@@ -18139,14 +18139,14 @@ resources may be disjoint. Aliasing them is not possible in that case.
 
 A memory pool contains a number of `VkDeviceMemory` blocks.
 The library automatically creates and manages default pool for each memory type available on the device.
-Default memory pool automatically grows in size.
+Default memory pool automatically grows in source_size.
 Size of allocated blocks is also variable and managed automatically.
 
 You can create custom pool and allocate memory out of it.
 It can be useful if you want to:
 
 - Keep certain kind of allocations separate from others.
-- Enforce particular, fixed size of Vulkan memory blocks.
+- Enforce particular, fixed source_size of Vulkan memory blocks.
 - Limit maximum amount of Vulkan memory allocated for that pool.
 - Reserve minimum or fixed amount of Vulkan memory always preallocated for that pool.
 - Use extra parameters for a set of your allocations that are available in #VmaPoolCreateInfo but not in
@@ -18165,7 +18165,7 @@ Example:
 \code
 // Find memoryTypeIndex for the pool.
 VkBufferCreateInfo sampleBufCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-sampleBufCreateInfo.size = 0x10000; // Doesn't matter.
+sampleBufCreateInfo.source_size = 0x10000; // Doesn't matter.
 sampleBufCreateInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 VmaAllocationCreateInfo sampleAllocCreateInfo = {};
@@ -18188,7 +18188,7 @@ res = vmaCreatePool(allocator, &poolCreateInfo, &pool);
 
 // Allocate a buffer out of it.
 VkBufferCreateInfo bufCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-bufCreateInfo.size = 1024;
+bufCreateInfo.source_size = 1024;
 bufCreateInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 VmaAllocationCreateInfo allocCreateInfo = {};
@@ -18230,7 +18230,7 @@ that you are going to create in that pool.
 
 \code
 VkBufferCreateInfo exampleBufCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-exampleBufCreateInfo.size = 1024; // Doesn't matter
+exampleBufCreateInfo.source_size = 1024; // Doesn't matter
 exampleBufCreateInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 VmaAllocationCreateInfo allocCreateInfo = {};
@@ -18340,7 +18340,7 @@ VmaPoolCreateInfo::maxBlockCount must be 1. Otherwise behavior is undefined.
 
 \page defragmentation Defragmentation
 
-Interleaved allocations and deallocations of many objects of varying size can
+Interleaved allocations and deallocations of many objects of varying source_size can
 cause fragmentation over time, which can lead to a situation where the library is unable
 to find a continuous range of free memory for a new allocation despite there is
 enough free space, just scattered across many small free ranges between existing
@@ -18465,7 +18465,7 @@ You can defragment a specific custom pool by setting VmaDefragmentationInfo::poo
 
 Defragmentation is always performed in each pool separately.
 Allocations are never moved between different Vulkan memory types.
-The size of the destination memory reserved for a moved allocation is the same as the original one.
+The source_size of the destination memory reserved for a moved allocation is the same as the original one.
 Alignment of an allocation as it was determined using `vkGetBufferMemoryRequirements()` etc. is also respected after defragmentation.
 Buffers/images should be recreated with the same `VkBufferCreateInfo` / `VkImageCreateInfo` parameters as the original ones.
 
@@ -18516,7 +18516,7 @@ printf("Vulkan reports total usage %llu B with budget %llu B.\n",
 \endcode
 
 You can query for more detailed statistics per memory heap, type, and totals,
-including minimum and maximum allocation size and unused range size,
+including minimum and maximum allocation source_size and unused range source_size,
 by calling function vmaCalculateStatistics() and inspecting structure #VmaTotalStatistics.
 This function is slower though, as it has to traverse all the internal data structures,
 so it should be used only for debugging purposes.
@@ -18626,7 +18626,7 @@ Example:
 
 \code
 VmaVirtualBlockCreateInfo blockCreateInfo = {};
-blockCreateInfo.size = 1048576; // 1 MB
+blockCreateInfo.source_size = 1048576; // 1 MB
 
 VmaVirtualBlock block;
 VkResult res = vmaCreateVirtualBlock(&blockCreateInfo, &block);
@@ -18649,7 +18649,7 @@ Example:
 
 \code
 VmaVirtualAllocationCreateInfo allocCreateInfo = {};
-allocCreateInfo.size = 4096; // 4 KB
+allocCreateInfo.source_size = 4096; // 4 KB
 
 VmaVirtualAllocation alloc;
 VkDeviceSize offset;
@@ -18697,7 +18697,7 @@ allocData->m_AllocName = "My allocation 1";
 vmaSetVirtualAllocationUserData(block, alloc, allocData);
 \endcode
 
-The pointer can later be fetched, along with allocation offset and size, by passing the allocation handle to function
+The pointer can later be fetched, along with allocation offset and source_size, by passing the allocation handle to function
 vmaGetVirtualAllocationInfo() and inspecting returned structure #VmaVirtualAllocationInfo.
 If you allocated a new object to be used as the custom pointer, don't forget to delete that object before freeing the allocation!
 Example:
@@ -18718,7 +18718,7 @@ VmaVirtualAllocationCreateInfo::alignment to request it. Example:
 
 \code
 VmaVirtualAllocationCreateInfo allocCreateInfo = {};
-allocCreateInfo.size = 4096; // 4 KB
+allocCreateInfo.source_size = 4096; // 4 KB
 allocCreateInfo.alignment = 4; // Returned offset must be a multiply of 4 B
 
 VmaVirtualAllocation alloc;
@@ -18726,12 +18726,12 @@ res = vmaVirtualAllocate(block, &allocCreateInfo, &alloc, nullptr);
 \endcode
 
 Alignments of different allocations made from one block may vary.
-However, if all alignments and sizes are always multiply of some size e.g. 4 B or `sizeof(MyDataStruct)`,
-you can express all sizes, alignments, and offsets in multiples of that size instead of individual bytes.
+However, if all alignments and sizes are always multiply of some source_size e.g. 4 B or `sizeof(MyDataStruct)`,
+you can express all sizes, alignments, and offsets in multiples of that source_size instead of individual bytes.
 It might be more convenient, but you need to make sure to use this new unit consistently in all the places:
 
-- VmaVirtualBlockCreateInfo::size
-- VmaVirtualAllocationCreateInfo::size and VmaVirtualAllocationCreateInfo::alignment
+- VmaVirtualBlockCreateInfo::source_size
+- VmaVirtualAllocationCreateInfo::source_size and VmaVirtualAllocationCreateInfo::alignment
 - Using offset returned by vmaVirtualAllocate() or in VmaVirtualAllocationInfo::offset
 
 \section virtual_allocator_statistics Statistics
@@ -18822,10 +18822,10 @@ of allocations across memory blocks after margins are applied.
 Margins work with all types of memory.
 
 Margin is applied only to allocations made out of memory blocks and not to dedicated
-allocations, which have their own memory block of specific size.
+allocations, which have their own memory block of specific source_size.
 It is thus not applied to allocations made using #VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT flag
 or those automatically decided to put into dedicated allocations, e.g. due to its
-large size or recommended by VK_KHR_dedicated_allocation extension.
+large source_size or recommended by VK_KHR_dedicated_allocation extension.
 
 Margins appear in [JSON dump](@ref statistics_json_dump) as part of free space.
 
@@ -18972,7 +18972,7 @@ Let the library select the optimal memory type, which will always have `VK_MEMOR
 
 \code
 VkBufferCreateInfo bufCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-bufCreateInfo.size = 65536;
+bufCreateInfo.source_size = 65536;
 bufCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 VmaAllocationCreateInfo allocCreateInfo = {};
@@ -19008,7 +19008,7 @@ and `VK_MEMORY_PROPERTY_HOST_CACHED_BIT`.
 
 \code
 VkBufferCreateInfo bufCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-bufCreateInfo.size = 65536;
+bufCreateInfo.source_size = 65536;
 bufCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
 VmaAllocationCreateInfo allocCreateInfo = {};
@@ -19036,7 +19036,7 @@ freqnently read on GPU e.g. as a uniform buffer (also called "dynamic"), multipl
    even if it means system RAM (not `DEVICE_LOCAL`) on systems with a discrete graphics card,
    and make the device reach out to that resource directly.
    - Reads performed by the device will then go through PCI Express bus.
-     The performace of this access may be limited, but it may be fine depending on the size
+     The performace of this access may be limited, but it may be fine depending on the source_size
      of this resource (whether it is small enough to quickly end up in GPU cache) and the sparsity
      of access.
 -# On systems with unified memory (e.g. AMD APU or Intel integrated graphics, mobile chips),
@@ -19065,7 +19065,7 @@ so you need to create another "staging" allocation and perform explicit transfer
 
 \code
 VkBufferCreateInfo bufCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-bufCreateInfo.size = 65536;
+bufCreateInfo.source_size = 65536;
 bufCreateInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
  
 VmaAllocationCreateInfo allocCreateInfo = {};
@@ -19093,7 +19093,7 @@ else
 {
     // Allocation ended up in a non-mappable memory - need to transfer.
     VkBufferCreateInfo stagingBufCreateInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-    stagingBufCreateInfo.size = 65536;
+    stagingBufCreateInfo.source_size = 65536;
     stagingBufCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
     VmaAllocationCreateInfo stagingAllocCreateInfo = {};
@@ -19113,7 +19113,7 @@ else
     VkBufferCopy bufCopy = {
         0, // srcOffset
         0, // dstOffset,
-        myDataSize); // size
+        myDataSize); // source_size
     vkCmdCopyBuffer(cmdBuf, stagingBuf, buf, 1, &bufCopy);
 }
 \endcode
@@ -19135,7 +19135,7 @@ Here are some other, less obvious use cases and their recommended settings:
     as VMA needs a hint here to differentiate from the previous case.
 - A buffer that you want to map and write from the CPU, directly read from the GPU
   (e.g. as a uniform or vertex buffer), but you have a clear preference to place it in device or
-  host memory due to its large size.
+  host memory due to its large source_size.
   - Use `VkBufferCreateInfo::usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT`
   - Use VmaAllocationCreateInfo::usage = #VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE or #VMA_MEMORY_USAGE_AUTO_PREFER_HOST
   - Use VmaAllocationCreateInfo::flags = #VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT
@@ -19496,7 +19496,7 @@ All changes between official releases are documented in file "CHANGELOG.md".
 Adding new members to existing structures is treated as backward compatible if initializing
 the new members to binary zero results in the old behavior.
 You should always fully initialize all library structures to zeros and not rely on their
-exact binary size.
+exact binary source_size.
 
 \section general_considerations_validation_layer_warnings Validation layer warnings
 
@@ -19519,8 +19519,8 @@ to just ignore them.
 The library uses following algorithm for allocation, in order:
 
 -# Try to find free range of memory in existing blocks.
--# If failed, try to create a new block of `VkDeviceMemory`, with preferred block size.
--# If failed, try to create such block with size / 2, size / 4, size / 8.
+-# If failed, try to create a new block of `VkDeviceMemory`, with preferred block source_size.
+-# If failed, try to create such block with source_size / 2, source_size / 4, source_size / 8.
 -# If failed, try to allocate separate `VkDeviceMemory` for this allocation,
    just like when you use #VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT.
 -# If failed, choose other memory type that meets the requirements specified in

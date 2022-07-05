@@ -549,7 +549,7 @@ void spvReflectDestroyShaderModule(SpvReflectShaderModule* p_module);
 /*! @fn spvReflectGetCodeSize
 
  @param  p_module  Pointer to an instance of SpvReflectShaderModule.
- @return           Returns the size of the SPIR-V in bytes
+ @return           Returns the source_size of the SPIR-V in bytes
 
 */
 uint32_t spvReflectGetCodeSize(const SpvReflectShaderModule* p_module);
@@ -1439,7 +1439,7 @@ namespace spv_reflect {
 class ShaderModule {
 public:
   ShaderModule();
-  ShaderModule(size_t size, const void* p_code, SpvReflectModuleFlags flags = SPV_REFLECT_MODULE_FLAG_NONE);
+  ShaderModule(size_t source_size, const void* p_code, SpvReflectModuleFlags flags = SPV_REFLECT_MODULE_FLAG_NONE);
   ShaderModule(const std::vector<uint8_t>& code, SpvReflectModuleFlags flags = SPV_REFLECT_MODULE_FLAG_NONE);
   ShaderModule(const std::vector<uint32_t>& code, SpvReflectModuleFlags flags = SPV_REFLECT_MODULE_FLAG_NONE);
   ~ShaderModule();
@@ -1547,14 +1547,14 @@ inline ShaderModule::ShaderModule() {}
 
 /*! @fn ShaderModule
 
-  @param  size
+  @param  source_size
   @param  p_code
 
 */
-inline ShaderModule::ShaderModule(size_t size, const void* p_code, SpvReflectModuleFlags flags) {
+inline ShaderModule::ShaderModule(size_t source_size, const void* p_code, SpvReflectModuleFlags flags) {
   m_result = spvReflectCreateShaderModule2(
     flags,
-    size,
+    source_size,
     p_code,
     &m_module);
 }
@@ -1567,7 +1567,7 @@ inline ShaderModule::ShaderModule(size_t size, const void* p_code, SpvReflectMod
 inline ShaderModule::ShaderModule(const std::vector<uint8_t>& code, SpvReflectModuleFlags flags) {
   m_result = spvReflectCreateShaderModule2(
     flags,
-    code.size(),
+    code.source_size(),
     code.data(),
     &m_module);
 }
@@ -1580,7 +1580,7 @@ inline ShaderModule::ShaderModule(const std::vector<uint8_t>& code, SpvReflectMo
 inline ShaderModule::ShaderModule(const std::vector<uint32_t>& code, SpvReflectModuleFlags flags) {
   m_result = spvReflectCreateShaderModule2(
     flags,
-    code.size() * sizeof(uint32_t),
+    code.source_size() * sizeof(uint32_t),
     code.data(),
     &m_module);
 }

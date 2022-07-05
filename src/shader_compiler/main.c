@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
 	free(spirv_bytes);
 	fprintf(c_file, "};\n");
 
-	// Write size
+	// Write source_size
 	fprintf(c_file, "int %s_size = %d;\n", argv[2], spirv_size);
 	fclose(c_file);
 	return 0;

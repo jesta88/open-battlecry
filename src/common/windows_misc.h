@@ -243,7 +243,7 @@ BOOL WINAPI QueryPerformanceCounter(
 /* Multi Media Timer:                                                         */
 #define TIMERR_NOERROR        (0)                  /* no error */
 #define TIMERR_NOCANDO        (TIMERR_BASE+1)      /* request not completed */
-#define TIMERR_STRUCT         (TIMERR_BASE+33)     /* time struct size */
+#define TIMERR_STRUCT         (TIMERR_BASE+33)     /* time struct source_size */
 
 typedef struct timecaps_tag {
     UINT    wPeriodMin;     /* minimum period supported  */
