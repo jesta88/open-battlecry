@@ -12,17 +12,10 @@
 #define MAX_PATH 260
 #endif
 
-enum
-{
-	VK_FORMAT_R8G8B8_SRGB = 29,
-	VK_FORMAT_R8G8B8A8_SRGB = 43,
-	VK_FORMAT_BC7_SRGB_BLOCK = 146
-};
-
 void wb_ktx_create(const wb_image* image)
 {
 	ktxTextureCreateInfo ktx_create_info = {
-			.vkFormat = VK_FORMAT_R8G8B8_SRGB,
+			.vkFormat = image->vk_format,
 			.baseWidth = image->width,
 			.baseHeight = image->height,
 			.baseDepth = 1,

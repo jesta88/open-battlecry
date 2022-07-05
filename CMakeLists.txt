@@ -127,3 +127,10 @@ add_executable(asset_converter
 target_link_libraries(asset_converter PRIVATE ktx shlwapi)
 target_compile_options(asset_converter PRIVATE /nologo /GS- /std:c17 /Zc:preprocessor /fp:fast /arch:AVX /openmp)
 target_compile_definitions(asset_converter PRIVATE SUPPORT_BC7E=1 $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN>)
+
+# Texture viewer
+add_executable(texture_viewer WIN32
+    src/texture_viewer/main.c
+    src/third_party/ktx/include/ktx.h
+    src/third_party/ktx/include/ktxvulkan.h)
+target_link_libraries(texture_viewer PRIVATE ktx)

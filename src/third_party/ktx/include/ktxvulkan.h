@@ -29,7 +29,7 @@
 
 #include <ktx.h>
 
-#if 0
+#if 1
 /* Avoid Vulkan include file */
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 

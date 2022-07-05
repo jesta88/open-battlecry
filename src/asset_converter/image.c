@@ -184,7 +184,7 @@ void wb_image_load_rle(const char* name, const u8* data, wb_image* image)
 
 	image->width = rle_header->width;
 	image->height = rle_header->height;
-	image->vk_format = VK_FORMAT_BC7_SRGB_BLOCK;
+	image->vk_format = VK_FORMAT_BC7_SRGB_BLOCK - 1;
 
 	image->source_size = rgba_size;
 	image->source_data = malloc(rgba_size);
