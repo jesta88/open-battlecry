@@ -1,5 +1,5 @@
 #define VK_NO_PROTOTYPES
-#include "../volk.h"
+#include "../volk/volk.h"
 #define VULKAN_H_
 #define VMA_IMPLEMENTATION
 #define VMA_STATIC_VULKAN_FUNCTIONS 0

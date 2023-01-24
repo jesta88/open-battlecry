@@ -1,0 +1,6 @@
+BasedOnStyle: Microsoft
+
+ColumnLimit: 0
+PointerAlignment: Left
+SortIncludes:  Never
+IndentCaseLabels:  true

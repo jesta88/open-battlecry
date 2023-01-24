@@ -85,7 +85,7 @@
    */
 
 
-#include <string.h>
+#include <strings.h>
 
 #define ft_memchr   memchr
 #define ft_memcmp   memcmp

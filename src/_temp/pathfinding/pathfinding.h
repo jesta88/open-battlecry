@@ -1,0 +1,8 @@
+//
+// Created by jerem on 2022-07-07.
+//
+
+#ifndef BATTLECRY_PATHFINDING_H
+#define BATTLECRY_PATHFINDING_H
+
+#endif //BATTLECRY_PATHFINDING_H
