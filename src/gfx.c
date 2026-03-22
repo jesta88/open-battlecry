@@ -32,7 +32,7 @@ enum
 {
     FRAMES_IN_FLIGHT     = 2,
     MAX_SWAPCHAIN_IMAGES = 8,
-    MAX_SPRITES          = 4096,
+    MAX_SPRITES          = 8192,
     MAX_TEXTURES         = 4096,
     SPRITE_SIZE          = 48,
     SSBO_SIZE            = MAX_SPRITES * SPRITE_SIZE,
@@ -851,6 +851,26 @@ bool gfx_poll_events(void)
     g.input.mouse_right_pressed = false;
     g.input.mouse_left_released = false;
     g.input.mouse_right_released = false;
+    g.input.key_escape_pressed = false;
+    g.input.key_enter_pressed = false;
+    g.input.key_up_pressed = false;
+    g.input.key_down_pressed = false;
+    g.input.key_b_pressed = false;
+    g.input.key_1_pressed = false;
+    g.input.key_2_pressed = false;
+    g.input.key_3_pressed = false;
+    g.input.key_4_pressed = false;
+    g.input.text_input_len = 0;
+    g.input.key_backspace_pressed = false;
+    g.input.key_backtick_pressed = false;
+    g.input.key_tab_pressed = false;
+    g.input.key_delete_pressed = false;
+    g.input.key_left_pressed = false;
+    g.input.key_right_pressed = false;
+    g.input.key_home_pressed = false;
+    g.input.key_end_pressed = false;
+    g.input.key_page_up_pressed = false;
+    g.input.key_page_down_pressed = false;
 
     SDL_Event ev;
     while (SDL_PollEvent(&ev))
@@ -872,6 +892,47 @@ bool gfx_poll_events(void)
             case SDL_EVENT_MOUSE_BUTTON_UP:
                 if (ev.button.button == SDL_BUTTON_LEFT)  { g.input.mouse_left_released = true; g.input.mouse_left_held = false; }
                 if (ev.button.button == SDL_BUTTON_RIGHT) { g.input.mouse_right_released = true; g.input.mouse_right_held = false; }
+                break;
+            case SDL_EVENT_TEXT_INPUT:
+            {
+                size_t len = strlen(ev.text.text);
+                size_t avail = sizeof(g.input.text_input) - g.input.text_input_len;
+                size_t copy = len < avail ? len : avail;
+                memcpy(g.input.text_input + g.input.text_input_len, ev.text.text, copy);
+                g.input.text_input_len += (uint8_t)copy;
+                break;
+            }
+            case SDL_EVENT_KEY_DOWN:
+                // Editing keys: allow repeats
+                switch (ev.key.scancode)
+                {
+                    case SDL_SCANCODE_BACKSPACE: g.input.key_backspace_pressed = true; break;
+                    case SDL_SCANCODE_DELETE:    g.input.key_delete_pressed = true; break;
+                    case SDL_SCANCODE_LEFT:      g.input.key_left_pressed = true; break;
+                    case SDL_SCANCODE_RIGHT:     g.input.key_right_pressed = true; break;
+                    case SDL_SCANCODE_HOME:      g.input.key_home_pressed = true; break;
+                    case SDL_SCANCODE_END:       g.input.key_end_pressed = true; break;
+                    case SDL_SCANCODE_PAGEUP:    g.input.key_page_up_pressed = true; break;
+                    case SDL_SCANCODE_PAGEDOWN:  g.input.key_page_down_pressed = true; break;
+                    default: break;
+                }
+                // Game keys: ignore repeats
+                if (ev.key.repeat) break;
+                switch (ev.key.scancode)
+                {
+                    case SDL_SCANCODE_ESCAPE: g.input.key_escape_pressed = true; break;
+                    case SDL_SCANCODE_RETURN: g.input.key_enter_pressed = true; break;
+                    case SDL_SCANCODE_UP:     g.input.key_up_pressed = true; break;
+                    case SDL_SCANCODE_DOWN:   g.input.key_down_pressed = true; break;
+                    case SDL_SCANCODE_B:      g.input.key_b_pressed = true; break;
+                    case SDL_SCANCODE_1:      g.input.key_1_pressed = true; break;
+                    case SDL_SCANCODE_2:      g.input.key_2_pressed = true; break;
+                    case SDL_SCANCODE_3:      g.input.key_3_pressed = true; break;
+                    case SDL_SCANCODE_4:      g.input.key_4_pressed = true; break;
+                    case SDL_SCANCODE_GRAVE:  g.input.key_backtick_pressed = true; break;
+                    case SDL_SCANCODE_TAB:    g.input.key_tab_pressed = true; break;
+                    default: break;
+                }
                 break;
         }
     }
@@ -1035,6 +1096,16 @@ void gfx_get_camera(float* x, float* y)
 const gfx_input* gfx_get_input(void)
 {
     return &g.input;
+}
+
+void gfx_start_text_input(void)
+{
+    SDL_StartTextInput(g.window);
+}
+
+void gfx_stop_text_input(void)
+{
+    SDL_StopTextInput(g.window);
 }
 
 // ---------------------------------------------------------------------------

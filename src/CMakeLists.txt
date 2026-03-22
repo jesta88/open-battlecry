@@ -5,8 +5,20 @@ add_executable(game
     xcr.c
     image.c
     stb_image.c
+    stb_truetype.c
     ani.c
     entity.c
+    map.c
+    pathfind.c
+    font.c
+    audio.c
+    hud.c
+    menu.c
+    resource.c
+    mine.c
+    building.c
+    baked_loader.c
+    console.c
 )
 
 recon_target_defaults(game)
@@ -19,6 +31,14 @@ target_link_libraries(game PRIVATE
 target_compile_definitions(game PRIVATE
     VK_NO_PROTOTYPES
     $<$<CONFIG:Debug>:WBC_DEBUG>
+)
+
+# Copy assets to build output directory
+add_custom_command(TARGET game POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:game>/assets"
+    COMMENT "Copying assets to build output"
 )
 
 # Shader compilation (GLSL -> SPIR-V) - requires Vulkan SDK

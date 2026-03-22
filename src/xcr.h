@@ -15,6 +15,7 @@ typedef enum
     XCR_RESOURCE_BUI,
     XCR_RESOURCE_GOM,
     XCR_RESOURCE_WAV,
+    XCR_RESOURCE_CFG,
 } xcr_resource_type;
 
 typedef struct

@@ -111,6 +111,7 @@ static xcr_resource_type detect_type(const char* filename)
     if (strcmp(ext, "bui") == 0) return XCR_RESOURCE_BUI;
     if (strcmp(ext, "gom") == 0) return XCR_RESOURCE_GOM;
     if (strcmp(ext, "wav") == 0) return XCR_RESOURCE_WAV;
+    if (strcmp(ext, "cfg") == 0) return XCR_RESOURCE_CFG;
     return XCR_RESOURCE_UNKNOWN;
 }
 

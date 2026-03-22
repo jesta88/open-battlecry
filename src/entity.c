@@ -2,6 +2,9 @@
 #include "gfx.h"
 #include "xcr.h"
 #include "image.h"
+#include "map.h"
+#include "pathfind.h"
+#include "audio.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -158,11 +161,104 @@ static void set_anim_with_fallback(unit* u, uint8_t desired, uint8_t fallback, u
     anim_player_set(&u->anim, &u->type->ani, anim, dir);
 }
 
+// Convert pixel position to cell coordinates
+static uint16_t px_to_cell_x(float px) { return (uint16_t)((int)(px / CELL_W)); }
+static uint16_t px_to_cell_y(float py) { return (uint16_t)((int)(py / CELL_H)); }
+
+// Convert cell to pixel (cell center)
+static float cell_to_px_x(uint16_t cx) { return (float)cx * CELL_W + CELL_W * 0.5f; }
+static float cell_to_px_y(uint16_t cy) { return (float)cy * CELL_H + CELL_H * 0.5f; }
+
+// Move unit along its current path. Returns true if still walking.
+static bool follow_path(unit* u, float dt)
+{
+    if (u->path.current >= u->path.length)
+        return false;
+
+    // Advance through waypoints that are already close enough.
+    // Use a generous threshold so separation forces don't prevent progress.
+    // For intermediate waypoints, use half a cell width; for the final one, use a tighter check.
+    while (u->path.current < u->path.length)
+    {
+        float tx = cell_to_px_x(u->path.points[u->path.current].x);
+        float ty = cell_to_px_y(u->path.points[u->path.current].y);
+        float dx = tx - u->x;
+        float dy = ty - u->y;
+        float dist2 = dx * dx + dy * dy;
+
+        bool is_final = (u->path.current == u->path.length - 1);
+        float threshold = is_final ? 6.0f : (float)(CELL_W / 2);
+
+        if (dist2 <= threshold * threshold)
+        {
+            u->path.current++;
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    if (u->path.current >= u->path.length)
+        return false; // path complete
+
+    float tx = cell_to_px_x(u->path.points[u->path.current].x);
+    float ty = cell_to_px_y(u->path.points[u->path.current].y);
+    float dx = tx - u->x;
+    float dy = ty - u->y;
+    float dist = sqrtf(dx * dx + dy * dy);
+    float step = u->speed * dt;
+
+    // Update facing direction
+    if (dist > 0.5f)
+    {
+        uint8_t dir = direction_from_delta(dx, dy);
+        if (dir != u->anim.direction)
+            set_anim_with_fallback(u, ANI_WALK, ANI_STAND, dir);
+    }
+
+    if (dist <= step)
+    {
+        u->x = tx;
+        u->y = ty;
+    }
+    else
+    {
+        u->x += (dx / dist) * step;
+        u->y += (dy / dist) * step;
+    }
+    return true;
+}
+
+// Issue a pathfound move command for a unit
+static bool unit_move_to(unit* u, const game_map* map, float world_x, float world_y)
+{
+    uint16_t sx = px_to_cell_x(u->x);
+    uint16_t sy = px_to_cell_y(u->y);
+    uint16_t dx = px_to_cell_x(world_x);
+    uint16_t dy = px_to_cell_y(world_y);
+
+    if (!pathfind_find(map, sx, sy, dx, dy, u->move_mode, &u->path))
+        return false;
+
+    u->state = UNIT_STATE_WALKING;
+    u->path.current = 0;
+    // Skip first waypoint if it's our current cell
+    if (u->path.length > 1 && u->path.points[0].x == sx && u->path.points[0].y == sy)
+        u->path.current = 1;
+
+    float next_x = cell_to_px_x(u->path.points[u->path.current].x);
+    float next_y = cell_to_px_y(u->path.points[u->path.current].y);
+    uint8_t dir = direction_from_delta(next_x - u->x, next_y - u->y);
+    set_anim_with_fallback(u, ANI_WALK, ANI_STAND, dir);
+    return true;
+}
+
 // ---------------------------------------------------------------------------
 // Update
 // ---------------------------------------------------------------------------
 
-void units_update(unit_array* arr, float dt)
+void units_update(unit_array* arr, const game_map* map, float dt, const combat_sounds* sounds)
 {
     for (uint32_t i = 0; i < arr->count; ++i)
     {
@@ -173,10 +269,17 @@ void units_update(unit_array* arr, float dt)
             case UNIT_STATE_IDLE:
             case UNIT_STATE_WALKING:
             {
-                // AI: scan for enemy if no target
-                if (u->target_unit == UINT32_MAX || u->target_unit >= arr->count ||
-                    arr->units[u->target_unit].state == UNIT_STATE_DYING ||
-                    arr->units[u->target_unit].team == u->team)
+                // Validate existing combat target
+                if (u->target_unit != UINT32_MAX &&
+                    (u->target_unit >= arr->count ||
+                     arr->units[u->target_unit].state == UNIT_STATE_DYING ||
+                     arr->units[u->target_unit].team == u->team))
+                {
+                    u->target_unit = UINT32_MAX;
+                }
+
+                // AI auto-aggro: only scan for enemies when IDLE (not during manual move)
+                if (u->state == UNIT_STATE_IDLE && u->target_unit == UINT32_MAX)
                 {
                     u->target_unit = find_nearest_enemy(arr, i);
                 }
@@ -198,40 +301,27 @@ void units_update(unit_array* arr, float dt)
                     }
                     else
                     {
-                        // Walk toward target
-                        u->target_x = target->x;
-                        u->target_y = target->y;
-                        if (u->state != UNIT_STATE_WALKING)
+                        // Repath periodically when chasing
+                        u->repath_timer -= dt;
+                        if (u->state != UNIT_STATE_WALKING || u->repath_timer <= 0.0f)
                         {
-                            u->state = UNIT_STATE_WALKING;
-                            uint8_t dir = direction_from_delta(target->x - u->x, target->y - u->y);
-                            set_anim_with_fallback(u, ANI_WALK, ANI_STAND, dir);
+                            u->repath_timer = 0.5f;
+                            unit_move_to(u, map, target->x, target->y);
                         }
                     }
                 }
 
-                // Movement (for WALKING state)
+                // Movement: follow path
                 if (u->state == UNIT_STATE_WALKING)
                 {
-                    float dx = u->target_x - u->x;
-                    float dy = u->target_y - u->y;
-                    float dist = sqrtf(dx * dx + dy * dy);
-                    float step = u->speed * dt;
-
-                    if (dist <= step)
+                    if (!follow_path(u, dt))
                     {
-                        u->x = u->target_x;
-                        u->y = u->target_y;
+                        // Path finished
                         if (u->target_unit == UINT32_MAX)
                         {
                             u->state = UNIT_STATE_IDLE;
                             anim_player_set(&u->anim, &u->type->ani, ANI_STAND, u->anim.direction);
                         }
-                    }
-                    else
-                    {
-                        u->x += (dx / dist) * step;
-                        u->y += (dy / dist) * step;
                     }
                 }
 
@@ -257,11 +347,8 @@ void units_update(unit_array* arr, float dt)
                 // Chase if target moved out of range
                 if (dist > u->type->attack_range * 1.5f)
                 {
-                    u->state = UNIT_STATE_WALKING;
-                    u->target_x = target->x;
-                    u->target_y = target->y;
-                    uint8_t dir = direction_from_delta(target->x - u->x, target->y - u->y);
-                    set_anim_with_fallback(u, ANI_WALK, ANI_STAND, dir);
+                    u->repath_timer = 0.0f; // force immediate repath
+                    unit_move_to(u, map, target->x, target->y);
                     break;
                 }
 
@@ -288,8 +375,13 @@ void units_update(unit_array* arr, float dt)
                         if (damage < 1) damage = 1;
                         target->health -= (int16_t)damage;
 
+                        if (sounds && sounds->snd_attack != UINT32_MAX)
+                            audio_play(sounds->snd_attack, 0.3f);
+
                         if (target->health <= 0)
                         {
+                            if (sounds && sounds->snd_die != UINT32_MAX)
+                                audio_play(sounds->snd_die, 0.5f);
                             target->state = UNIT_STATE_DYING;
                             target->target_unit = UINT32_MAX;
                             target->selected = false;
@@ -331,17 +423,63 @@ void units_update(unit_array* arr, float dt)
         uint32_t t = arr->units[i].target_unit;
         arr->units[i].target_unit = (t < MAX_UNITS) ? remap[t] : UINT32_MAX;
     }
+
+    // Soft unit separation — gentle push to prevent stacking.
+    // Must be weaker than movement speed (80 px/s) so path-following wins.
+    const float sep_radius = 18.0f;
+    const float sep_strength = 30.0f; // pixels/sec (well below movement speed)
+    for (uint32_t i = 0; i < arr->count; ++i)
+    {
+        unit* a = &arr->units[i];
+        if (a->state == UNIT_STATE_DYING) continue;
+        for (uint32_t j = i + 1; j < arr->count; ++j)
+        {
+            unit* b = &arr->units[j];
+            if (b->state == UNIT_STATE_DYING) continue;
+
+            float dx = b->x - a->x;
+            float dy = b->y - a->y;
+            float dist2 = dx * dx + dy * dy;
+            if (dist2 >= sep_radius * sep_radius || dist2 < 0.01f) continue;
+
+            float dist = sqrtf(dist2);
+            float overlap = sep_radius - dist;
+            float push = overlap * sep_strength * dt / dist;
+            a->x -= dx * push * 0.5f;
+            a->y -= dy * push * 0.5f;
+            b->x += dx * push * 0.5f;
+            b->y += dy * push * 0.5f;
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
 
+// Y-sorted draw order so units further down screen render on top (isometric depth)
+static const unit_array* s_sort_arr;
+static int compare_unit_y(const void* a, const void* b)
+{
+    uint32_t ia = *(const uint32_t*)a;
+    uint32_t ib = *(const uint32_t*)b;
+    float ya = s_sort_arr->units[ia].y;
+    float yb = s_sort_arr->units[ib].y;
+    return (ya > yb) - (ya < yb);
+}
+
 void units_draw(const unit_array* arr, uint32_t white_tex)
 {
+    // Build sorted index array
+    uint32_t order[MAX_UNITS];
     for (uint32_t i = 0; i < arr->count; ++i)
+        order[i] = i;
+    s_sort_arr = arr;
+    qsort(order, arr->count, sizeof(uint32_t), compare_unit_y);
+
+    for (uint32_t idx = 0; idx < arr->count; ++idx)
     {
-        const unit* u = &arr->units[i];
+        const unit* u = &arr->units[order[idx]];
         uint8_t anim_type = u->anim.anim_type;
         uint32_t tex = u->type->tex[anim_type];
         if (tex == UINT32_MAX) continue;

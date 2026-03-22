@@ -2,6 +2,7 @@
 
 #include "ani.h"
 #include "xcr.h"
+#include "pathfind.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -43,12 +44,15 @@ typedef struct
 
     uint8_t state;
     uint8_t team;        // 0 = player, 1 = enemy
+    uint8_t move_mode;   // MOVE_LAND, MOVE_FLY, etc.
     bool selected;
 
     int16_t health;
     float attack_timer;
+    float repath_timer;  // time until next repath for AI chase
     uint32_t target_unit; // index into unit_array, UINT32_MAX if none
 
+    path_result path;
     anim_player anim;
     const unit_type* type;
 } unit;
@@ -68,7 +72,13 @@ void unit_type_set_default_stats(unit_type* ut, int16_t health, int16_t damage,
 
 uint32_t unit_spawn(unit_array* arr, const unit_type* type, float x, float y, uint8_t team);
 
-void units_update(unit_array* arr, float dt);
+typedef struct
+{
+    uint32_t snd_attack; // UINT32_MAX = no sound
+    uint32_t snd_die;
+} combat_sounds;
+
+void units_update(unit_array* arr, const game_map* map, float dt, const combat_sounds* sounds);
 
 // white_tex: 1x1 white texture index for health bar rendering
 void units_draw(const unit_array* arr, uint32_t white_tex);

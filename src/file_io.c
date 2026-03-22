@@ -7,10 +7,7 @@ uint8_t* read_file_binary(const char* path, size_t* out_size)
 {
     FILE* f = fopen(path, "rb");
     if (!f)
-    {
-        fprintf(stderr, "[file_io] Failed to open: %s\n", path);
         return NULL;
-    }
 
     fseek(f, 0, SEEK_END);
     long len = ftell(f);

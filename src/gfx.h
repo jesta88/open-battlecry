@@ -50,6 +50,37 @@ typedef struct
     bool mouse_left_held;
     bool mouse_right_held;
     float mouse_x, mouse_y;    // screen coordinates
+
+    // Keyboard (true on the frame the key went down, ignores repeats)
+    bool key_escape_pressed;
+    bool key_enter_pressed;
+    bool key_up_pressed;
+    bool key_down_pressed;
+    bool key_b_pressed;
+    bool key_1_pressed;
+    bool key_2_pressed;
+    bool key_3_pressed;
+    bool key_4_pressed;
+
+    // Text input (filled by SDL_EVENT_TEXT_INPUT when text input is active)
+    char text_input[32];
+    uint8_t text_input_len; // bytes written this frame (0 if none)
+
+    // Editing/console keys (allow key repeat)
+    bool key_backspace_pressed;
+    bool key_backtick_pressed;
+    bool key_tab_pressed;
+    bool key_delete_pressed;
+    bool key_left_pressed;
+    bool key_right_pressed;
+    bool key_home_pressed;
+    bool key_end_pressed;
+    bool key_page_up_pressed;
+    bool key_page_down_pressed;
 } gfx_input;
 
 const gfx_input* gfx_get_input(void);
+
+// SDL3 text input mode (enables SDL_EVENT_TEXT_INPUT events)
+void gfx_start_text_input(void);
+void gfx_stop_text_input(void);

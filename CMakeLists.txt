@@ -41,3 +41,4 @@ include(FetchVolk)
 include(FetchSDL3)
 
 add_subdirectory(src)
+add_subdirectory(tools)

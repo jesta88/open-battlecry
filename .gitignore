@@ -16,3 +16,5 @@ temp
 /src/shaders/*.exe
 /src/shaders/*.pdb
 ORIGINAL DO NOT SAVE OR DELETE OR CHANGE TO THIS FOLDERWarlordsBattlecry3_Unicode
+baked
+*.obj
