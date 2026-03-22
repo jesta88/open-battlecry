@@ -1,0 +1,138 @@
+cmake_minimum_required(VERSION 3.22)
+project(battlecry VERSION 0.1)
+
+option(WARCORE_SDL "Use SDL as the platform backend." ON)
+option(WARCORE_VULKAN "Use Vulkan as the graphics backend." ON)
+option(WARCORE_PROFILE "Enable profiling." OFF)
+option(WARCORE_RESOURCES "Build and pack resources." ON)
+
+set(WARCORE_COMPILE_OPTIONS
+        $<$<C_COMPILER_ID:MSVC>:/nologo /GS- /std:c17 /Zc:preprocessor /fp:fast /arch:AVX>
+        $<$<C_COMPILER_ID:GNU>:-mavx -std=c2x>)
+
+set(WARCORE_COMPILE_DEFINITIONS
+        $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN VK_USE_PLATFORM_WIN32_KHR>
+        $<$<PLATFORM_ID:Linux>:VK_USE_PLATFORM_XCB_KHR VK_USE_PLATFORM_XCB_XRANDR_EXT>)
+
+find_package(Vulkan REQUIRED)
+find_package(SDL2 CONFIG REQUIRED)
+
+# Shader Compiler
+add_executable(shader_compiler ../src7/tools/shader_compiler/main.c)
+target_link_libraries(shader_compiler PRIVATE Vulkan::Headers)
+target_compile_options(shader_compiler PRIVATE ${WARCORE_COMPILE_OPTIONS})
+target_compile_definitions(shader_compiler PRIVATE ${WARCORE_COMPILE_DEFINITIONS})
+
+# Shaders
+file(GLOB_RECURSE GLSL_SOURCE_FILES
+        "src/shaders/*.frag"
+        "src/shaders/*.vert")
+
+foreach(GLSL ${GLSL_SOURCE_FILES})
+    get_filename_component(FILE_NAME ${GLSL} NAME)
+    set(OUT_DIR "${CMAKE_SOURCE_DIR}/src/shaders/")
+    set(SPIRV "${OUT_DIR}${FILE_NAME}.spv")
+    add_custom_command(
+            OUTPUT ${SPIRV}
+            COMMENT "Compiling ${GLSL}"
+            COMMAND $ENV{VULKAN_SDK}/Bin/glslangValidator.exe -V ${GLSL} -o ${SPIRV}
+            COMMAND $ENV{VULKAN_SDK}/Bin/spirv-opt.exe -Oconfig="${OUT_DIR}spirv-opt.cfg" ${SPIRV} -o ${SPIRV}
+            COMMAND ${CMAKE_BINARY_DIR}/shader_compiler.exe ${SPIRV} ${FILE_NAME}_spv ${CMAKE_SOURCE_DIR}/src/shaders/${FILE_NAME}.c
+            DEPENDS ${GLSL})
+    list(APPEND SPIRV_BINARY_FILES ${SPIRV})
+endforeach(GLSL)
+
+add_custom_target(shaders
+        DEPENDS ${SPIRV_BINARY_FILES})
+add_dependencies(shaders shader_compiler)
+
+# Renderer
+add_library(renderer SHARED 
+    "../src6/graphics/graphics.h"
+    "../src6/graphics/graphics.c")
+
+target_link_libraries(renderer PRIVATE Vulkan::Headers vma ktx)
+set_target_properties(renderer PROPERTIES LINKER_LANGUAGE C)
+target_compile_options(renderer PRIVATE
+        $<$<C_COMPILER_ID:MSVC>:/nologo /GS- /std:c17 /Zc:preprocessor /fp:fast /arch:AVX>
+        $<$<C_COMPILER_ID:GNU>:-mavx -std=c2x>)
+
+# Engine
+add_library(engine SHARED
+        ../src6/log.c
+        ../src6/engine_windows.c
+        ../src6/application.c
+        ../src6/system/application_private.h
+        ../src6/engine.h
+        ../src6/engine.c
+        ../src6/engine_private.h
+        ../src6/timer.c ../src6/events.c ../src7/engine/system.h ../src7/engine/system.c ../src7/engine/strings.h ../src7/engine/strings.c ../src7/engine/debug.h ../src7/engine/log.c ../src7/engine/log.h ../src7/engine/keys.c ../src7/engine/keys.h ../src7/carbon/win32_window.c ../src7/carbon/include/carbon_window.h ../src7/carbon/types.h src/carbon/carbon_animation.c src/carbon/carbon_animation.h ../src7/carbon/win32_common.h)
+target_link_libraries(engine PRIVATE
+        $<$<BOOL:${FORCE_USE_SDL}>:SDL>
+        $<$<PLATFORM_ID:Windows, Linux>:Vulkan::Headers vma>)
+target_include_directories(engine PUBLIC ../src7/engine)
+target_compile_options(engine PUBLIC
+        $<$<C_COMPILER_ID:MSVC>:/nologo /GS- /std:c17 /Zc:preprocessor /fp:fast /arch:AVX>
+        $<$<C_COMPILER_ID:GNU>:-mavx -std=c2x>)
+target_link_options(engine PRIVATE)
+target_compile_definitions(engine PRIVATE
+        $<$<BOOL:${FORCE_USE_SDL}>:FORCE_USE_SDL>
+        $<$<CONFIG:Debug>:DEBUG>
+        $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS VC_EXTRALEAN WIN32_LEAN_AND_MEAN VK_USE_PLATFORM_WIN32_KHR>
+        $<$<PLATFORM_ID:Linux>:VK_USE_PLATFORM_XCB_KHR VK_USE_PLATFORM_XCB_XRANDR_EXT>)
+set_target_properties(engine PROPERTIES LINKER_LANGUAGE C)
+
+# Game
+add_executable(game
+        ../src7/game/game.c)
+target_link_libraries(game PRIVATE engine)
+target_compile_options(game PRIVATE
+        $<$<C_COMPILER_ID:MSVC>:/nologo /GS- /std:c17 /Zc:preprocessor /fp:fast /arch:AVX>
+        $<$<C_COMPILER_ID:GNU>:-mavx -std=c2x>)
+
+# Asset converter
+add_executable(asset_converter
+        ../src7/tools/asset_converter/main.c
+        ../src7/tools/asset_converter/xcr.c
+        ../src7/tools/asset_converter/xcr.h
+        ../src7/tools/asset_converter/animation.h
+        ../src7/tools/asset_converter/ktx.h
+        ../src7/tools/asset_converter/ktx.c
+        ../src7/tools/asset_converter/image.c
+        ../src7/tools/asset_converter/image.h
+        ../src7/tools/asset_converter/encode.c
+        ../src7/tools/asset_converter/encode.h
+        ../src7/engine/std.h
+        ../src6/log.c
+        ../src6/io.c
+        ../src6/system/memory.h
+        ../src6/system/memory.c
+        ../src6/system/windows/windows_base.h
+        ../src6/system/windows/windows_file.h
+        ../src6/system/windows/windows_io.h
+        ../src6/system/windows/windows_misc.h
+        ../src7/third_party/ktx/include/ktx.h
+        ../src7/third_party/ktx/include/ktxvulkan.h
+        ../src7/third_party/stb/stb_image.h
+        ../src7/third_party/stb/stb_image.c
+        ../src7/third_party/bc7e/bc7e_ispc.h
+        ../src7/third_party/bc7e/bc7e.obj
+        ../src7/third_party/bc7e/bc7e_avx.obj
+        ../src7/third_party/bc7e/bc7e_avx2.obj
+        ../src7/third_party/bc7e/bc7e_sse2.obj
+        ../src7/third_party/bc7e/bc7e_sse4.obj)
+target_link_libraries(asset_converter PRIVATE ktx shlwapi)
+target_compile_options(asset_converter PRIVATE
+        $<$<C_COMPILER_ID:MSVC>:/nologo /GS- /std:c17 /Zc:preprocessor /fp:fast /arch:AVX /openmp>
+        $<$<C_COMPILER_ID:GNU>:-mavx -std=c2x -fopenmp>)
+target_compile_definitions(asset_converter PRIVATE SUPPORT_BC7E=1 $<$<PLATFORM_ID:Windows>:_CRT_SECURE_NO_WARNINGS WIN32_LEAN_AND_MEAN>)
+
+# Texture viewer
+add_executable(texture_viewer WIN32
+        ../src7/tools/texture_viewer/main.c
+        ../src7/third_party/ktx/include/ktx.h
+        ../src7/third_party/ktx/include/ktxvulkan.h)
+target_link_libraries(texture_viewer PRIVATE ktx)
+target_compile_options(texture_viewer PRIVATE
+        $<$<C_COMPILER_ID:MSVC>:/nologo /GS- /std:c17 /Zc:preprocessor /fp:fast /arch:AVX>
+        $<$<C_COMPILER_ID:GNU>:-mavx -std=c2x>)

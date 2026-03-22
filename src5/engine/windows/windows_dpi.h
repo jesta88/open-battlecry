@@ -1,0 +1,93 @@
+#ifndef _WINDOWS_
+#ifndef WINDOWS_DPI_H
+#define WINDOWS_DPI_H
+
+#ifndef WINDOWS_BASE_H
+#include "windows_base.h"
+#endif
+
+#define USER_DEFAULT_SCREEN_DPI 96
+
+DECLARE_HANDLE(DPI_AWARENESS_CONTEXT);
+
+typedef enum DPI_AWARENESS
+{
+    DPI_AWARENESS_INVALID = -1,
+    DPI_AWARENESS_UNAWARE = 0,
+    DPI_AWARENESS_SYSTEM_AWARE = 1,
+    DPI_AWARENESS_PER_MONITOR_AWARE = 2
+} DPI_AWARENESS;
+
+#define DPI_AWARENESS_CONTEXT_UNAWARE              ((DPI_AWARENESS_CONTEXT)-1)
+#define DPI_AWARENESS_CONTEXT_SYSTEM_AWARE         ((DPI_AWARENESS_CONTEXT)-2)
+#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE    ((DPI_AWARENESS_CONTEXT)-3)
+#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((DPI_AWARENESS_CONTEXT)-4)
+#define DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED    ((DPI_AWARENESS_CONTEXT)-5)
+
+typedef enum DPI_HOSTING_BEHAVIOR
+{
+    DPI_HOSTING_BEHAVIOR_INVALID = -1,
+    DPI_HOSTING_BEHAVIOR_DEFAULT = 0,
+    DPI_HOSTING_BEHAVIOR_MIXED = 1
+} DPI_HOSTING_BEHAVIOR;
+
+BOOL WINAPI SetProcessDPIAware(
+    VOID);
+
+BOOL WINAPI IsProcessDPIAware(
+    VOID);
+
+DPI_AWARENESS_CONTEXT WINAPI SetThreadDpiAwarenessContext(
+    DPI_AWARENESS_CONTEXT dpiContext);
+
+DPI_AWARENESS_CONTEXT WINAPI GetThreadDpiAwarenessContext(
+    VOID);
+
+DPI_AWARENESS_CONTEXT WINAPI GetWindowDpiAwarenessContext(
+    HWND hwnd);
+
+DPI_AWARENESS WINAPI GetAwarenessFromDpiAwarenessContext(
+    DPI_AWARENESS_CONTEXT value);
+
+UINT WINAPI GetDpiFromDpiAwarenessContext(
+    DPI_AWARENESS_CONTEXT value);
+
+BOOL WINAPI AreDpiAwarenessContextsEqual(
+    DPI_AWARENESS_CONTEXT dpiContextA,
+    DPI_AWARENESS_CONTEXT dpiContextB);
+
+BOOL WINAPI IsValidDpiAwarenessContext(
+    DPI_AWARENESS_CONTEXT value);
+
+UINT WINAPI GetDpiForWindow(
+    HWND hwnd);
+
+UINT WINAPI GetDpiForSystem(
+    VOID);
+
+UINT WINAPI GetSystemDpiForProcess(
+    HANDLE hProcess);
+
+BOOL WINAPI EnableNonClientDpiScaling(
+    HWND hwnd);
+
+BOOL WINAPI InheritWindowMonitor(
+    HWND hwnd,
+    HWND hwndInherit);
+
+BOOL WINAPI SetProcessDpiAwarenessContext(
+    DPI_AWARENESS_CONTEXT value);
+
+DPI_AWARENESS_CONTEXT WINAPI GetDpiAwarenessContextForProcess(
+    HANDLE hProcess);
+
+DPI_HOSTING_BEHAVIOR WINAPI SetThreadDpiHostingBehavior(
+    DPI_HOSTING_BEHAVIOR value);
+
+DPI_HOSTING_BEHAVIOR WINAPI GetThreadDpiHostingBehavior(VOID);
+
+DPI_HOSTING_BEHAVIOR WINAPI GetWindowDpiHostingBehavior(
+    HWND hwnd);
+
+#endif /* WINDOWS_DPI_H */
+#endif /* _WINDOWS_ */

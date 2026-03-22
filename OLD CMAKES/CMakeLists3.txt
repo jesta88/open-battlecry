@@ -1,0 +1,70 @@
+﻿cmake_minimum_required (VERSION 3.20)
+
+project (warkit LANGUAGES C VERSION 0.1.0)
+
+set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED YES)
+set(CMAKE_C_EXTENSIONS YES)
+set(CMAKE_CXX_STANDARD 17)
+
+# Compiler
+if (CMAKE_C_COMPILER_ID MATCHES MSVC)
+	set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+else()
+	# TODO: GCC/Clang
+endif()
+
+# Engine
+add_library(warkit-engine
+	"src/engine/entry.h"
+	"src/engine/memory.c"
+	"src/engine/engine.c"
+	"src/engine/jobs.c"
+	"src/engine/vulkan/vulkan_funcs.c")
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+	target_sources(warkit-engine PRIVATE
+		"src/engine/windows/debug.c"
+		"src/engine/windows/file_system.c"
+		"src/engine/windows/os.c"
+		"src/engine/windows/threads.c"
+		"src/engine/windows/time.c"
+		"src/engine/windows/window.c")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+endif()
+
+add_library(vulkan-headers INTERFACE)
+target_include_directories(vulkan-headers INTERFACE src/third_party/vulkan-headers/include)
+
+target_include_directories(warkit-engine PUBLIC src)
+target_compile_options(warkit-engine PUBLIC /nologo /permissive- /TC /utf-8 /std:c17 /Zo /Oi /Gv /GS- /GL /fp:fast /arch:AVX2 /W4 /WX /wd28251 /wd6255 /wd4100 /wd4189 /wd4200 /experimental:c11atomics)
+target_link_libraries(warkit-engine PRIVATE vulkan-headers Shlwapi Winmm)
+target_compile_definitions(warkit-engine PUBLIC
+	$<$<PLATFORM_ID:Windows>:WK_PLATFORM_WINDOWS VK_USE_PLATFORM_WIN32_KHR _CRT_SECURE_NO_WARNINGS>
+	$<$<CONFIG:Debug>:WK_DEBUG>)
+
+# Game
+add_library(warkit-game
+	"src/game/game.c")
+
+target_link_libraries(warkit-game PRIVATE warkit-engine)
+
+# Client
+add_executable(warkit-client
+	"src/client/main.c" )
+
+target_include_directories(warkit-client PUBLIC src)
+target_link_libraries(warkit-client PRIVATE warkit-engine warkit-game)
+target_link_options(warkit-client PUBLIC
+	$<$<PLATFORM_ID:Windows>:/SUBSYSTEM:WINDOWS>)
+
+# Server
+add_executable(warkit-server
+	"src/server/main.c")
+
+target_include_directories(warkit-server PUBLIC src)
+target_link_libraries(warkit-server PRIVATE warkit-engine warkit-game)
+target_link_options(warkit-server PUBLIC
+	$<$<PLATFORM_ID:Windows>:/SUBSYSTEM:CONSOLE>)

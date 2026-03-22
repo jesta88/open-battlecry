@@ -7,11 +7,12 @@ out/
 /editor/Editor/obj
 /editor/Editor/bin/Debug/net6.0-windows
 /bin/
-/src/editor/bin
-/src/editor/obj
+/src7/editor/bin
+/src7/editor/obj
 temp
 *.scor*
 /src/shaders/*.spv
 /src/shaders/*.c
 /src/shaders/*.exe
 /src/shaders/*.pdb
+ORIGINAL DO NOT SAVE OR DELETE OR CHANGE TO THIS FOLDERWarlordsBattlecry3_Unicode

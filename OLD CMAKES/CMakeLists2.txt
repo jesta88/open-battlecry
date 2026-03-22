@@ -1,0 +1,47 @@
+cmake_minimum_required(VERSION 4.1)
+project(recon VERSION 0.1.0 LANGUAGES C)
+
+if (CMAKE_SIZEOF_VOID_P AND NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+    message(FATAL_ERROR "This project requires 64-bit builds (x64).")
+endif()
+
+set(CMAKE_LINK_WARNING_AS_ERROR ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
+endif()
+
+option(RECON_BUILD_CLIENT "Build client app" ON)
+option(RECON_BUILD_SERVER "Build headless server" OFF)
+option(RECON_BUILD_TESTS  "Build tests (CTest)" ON)
+option(RECON_TRACE "Trace mode" OFF)
+option(RECON_SANITIZE "Enable sanitizers" OFF)
+option(RECON_LTO "Link time optimization" OFF)
+
+# Diagnostic information.
+message(STATUS "Configuring ${PROJECT_NAME}")
+message(STATUS "* Runtime output directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+message(STATUS "* Library output directory: ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+message(STATUS "* Trace: ${RECON_TRACE}")
+message(STATUS "* Link time optimization: ${RECON_LTO}")
+message(STATUS "* Sanitize: ${RECON_SANITIZE}")
+
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+
+include(Options)
+
+add_subdirectory(src)
+
+if (RECON_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif ()
+
+if(RECON_SANITIZE)
+    if(MSVC)
+        target_compile_options(${PROJECT_NAME} "$<$<CONFIG:Debug>:/fsanitize=address>")
+        target_link_options(${PROJECT_NAME} "$<$<CONFIG:Debug>:/INCREMENTAL:NO>")
+    endif()
+endif()
