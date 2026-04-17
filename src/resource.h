@@ -13,7 +13,7 @@ enum
 	MAX_TEAMS   = 4,
 };
 
-typedef struct
+typedef struct resource_bank
 {
 	int32_t amount[RES_COUNT];
 } resource_bank;

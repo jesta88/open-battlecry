@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ani.h"
-#include "xcr.h"
 #include "pathfind.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -17,7 +16,7 @@ enum
 };
 
 // Shared data for one unit class
-typedef struct
+typedef struct unit_type
 {
     uint32_t tex[ANI_TYPE_COUNT];
     uint32_t sheet_w[ANI_TYPE_COUNT];
@@ -57,13 +56,11 @@ typedef struct
     const unit_type* type;
 } unit;
 
-typedef struct
+typedef struct unit_array
 {
     unit units[MAX_UNITS];
     uint32_t count;
 } unit_array;
-
-bool unit_type_load(unit_type* ut, const xcr_archive* archive, const char* base_code);
 
 void unit_type_set_default_stats(unit_type* ut, int16_t health, int16_t damage,
                                   int16_t armor, int16_t combat,
@@ -71,6 +68,9 @@ void unit_type_set_default_stats(unit_type* ut, int16_t health, int16_t damage,
                                   float attack_cooldown);
 
 uint32_t unit_spawn(unit_array* arr, const unit_type* type, float x, float y, uint8_t team);
+
+// Convert a direction vector to an 8-directional index (0=N, 1=NE, ..., 7=NW)
+uint8_t direction_from_delta(float dx, float dy);
 
 typedef struct
 {

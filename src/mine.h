@@ -1,9 +1,10 @@
 #pragma once
 
-#include "map.h"
-#include "resource.h"
 #include <stdbool.h>
 #include <stdint.h>
+
+typedef struct game_map game_map;
+typedef struct resource_bank resource_bank;
 
 enum
 {
@@ -21,7 +22,7 @@ typedef struct
 	bool active;
 } mine;
 
-typedef struct
+typedef struct mine_array
 {
 	mine mines[MAX_MINES];
 	uint32_t count;

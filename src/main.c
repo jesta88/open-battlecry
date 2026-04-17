@@ -11,6 +11,7 @@
 #include "building.h"
 #include "baked_loader.h"
 #include "baked_format.h"
+#include "game_setup.h"
 #include "file_io.h"
 #include "console.h"
 
@@ -19,6 +20,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define CLICK_THRESHOLD    4.0f
+#define MINIMAP_SCALE      1.5f
+#define MINIMAP_MARGIN     8.0f
+#define INITIAL_GOLD       500
+#define INITIAL_METAL      200
+#define INITIAL_CRYSTAL    200
+#define INITIAL_STONE      200
 
 // Terrain textures (loaded from baked/ directory)
 static uint32_t terrain_textures[TERRAIN_COUNT];
@@ -51,7 +60,7 @@ static void handle_selection(unit_array* units, const gfx_input* input, float ca
         float min_wx = min_sx - cam_x, max_wx = max_sx - cam_x;
         float min_wy = min_sy - cam_y, max_wy = max_sy - cam_y;
 
-        bool is_click = (max_sx - min_sx < 4.0f && max_sy - min_sy < 4.0f);
+        bool is_click = (max_sx - min_sx < CLICK_THRESHOLD && max_sy - min_sy < CLICK_THRESHOLD);
 
         for (uint32_t i = 0; i < units->count; ++i)
             units->units[i].selected = false;
@@ -136,9 +145,7 @@ static void handle_move_command(unit_array* units, const game_map* map, const gf
             float next_py = (float)u->path.points[u->path.current].y * CELL_H + CELL_H * 0.5f;
             float ddx = next_px - u->x;
             float ddy = next_py - u->y;
-            float angle = atan2f(ddx, -ddy);
-            if (angle < 0.0f) angle += 2.0f * 3.14159265f;
-            uint8_t dir = (uint8_t)((int)(angle / (2.0f * 3.14159265f) * 8.0f + 0.5f) % 8);
+            uint8_t dir = direction_from_delta(ddx, ddy);
 
             uint8_t walk_anim = (u->type->tex[ANI_WALK] != UINT32_MAX) ? ANI_WALK : ANI_STAND;
             anim_player_set(&u->anim, &u->type->ani, walk_anim, dir);
@@ -161,15 +168,7 @@ static void draw_selection_box(const gfx_input* input, uint32_t white_tex)
 
     float min_x = fminf(x0, x1), max_x = fmaxf(x0, x1);
     float min_y = fminf(y0, y1), max_y = fmaxf(y0, y1);
-    float w = max_x - min_x;
-    float h = max_y - min_y;
-    float t = 2.0f;
-
-    uint32_t green = 0xFF00FF00;
-    gfx_draw_sprite(min_x, min_y, w, t, white_tex, green);         // top
-    gfx_draw_sprite(min_x, max_y - t, w, t, white_tex, green);     // bottom
-    gfx_draw_sprite(min_x, min_y, t, h, white_tex, green);         // left
-    gfx_draw_sprite(max_x - t, min_y, t, h, white_tex, green);     // right
+    gfx_draw_rect(min_x, min_y, max_x - min_x, max_y - min_y, 2.0f, white_tex, 0xFF00FF00);
 }
 
 // ---------------------------------------------------------------------------
@@ -229,15 +228,29 @@ int main(int argc, char* argv[])
     // Menu
     menu_init(&(menu_config){.ui_font = &ui_font, .title_font = &title_font, .white_tex = white_tex});
 
-    // Map (procedural for now — scenario loading comes later)
+    // Game setup (defines teams, sides, starting positions, map size)
+    game_setup setup = game_setup_default();
+
+    // Map — try loading baked scenario, fall back to procedural
     game_map map = {0};
-    if (!map_init(&map, 128, 128))
+    scenario_visuals scn_vis = {0};
     {
-        fprintf(stderr, "[main] Failed to allocate map\n");
-        gfx_shutdown();
-        return 1;
+        char scn_path[512], tiles_path[512], features_path[512];
+        snprintf(scn_path, sizeof(scn_path), "%s/scenarios/bridges.bscn", baked_dir);
+        snprintf(tiles_path, sizeof(tiles_path), "%s/terrain/tiles", baked_dir);
+        snprintf(features_path, sizeof(features_path), "%s/features", baked_dir);
+        if (!baked_load_scenario(scn_path, tiles_path, features_path, &map, &scn_vis, NULL))
+        {
+            fprintf(stderr, "[main] No baked scenario found, using procedural map\n");
+            if (!map_init(&map, setup.map_width, setup.map_height))
+            {
+                fprintf(stderr, "[main] Failed to allocate map\n");
+                gfx_shutdown();
+                return 1;
+            }
+            map_generate_test(&map);
+        }
     }
-    map_generate_test(&map);
     fprintf(stderr, "[main] Map initialized: %ux%u cells\n", map.width, map.height);
 
     // Load terrain textures from baked BMPs
@@ -256,59 +269,61 @@ int main(int argc, char* argv[])
         baked_load_units(units_bin, &unit_defs, &num_unit_defs);
     }
 
-    // Load unit type sprites from first available side
-    #define MAX_UNIT_TYPES 32
+    // Load unit types for each team's side
+    #define MAX_UNIT_TYPES 64
     unit_type unit_types[MAX_UNIT_TYPES];
     uint32_t num_unit_types = 0;
 
+    uint32_t team_type_offset[GAME_MAX_TEAMS] = {0};
+    uint32_t team_type_count[GAME_MAX_TEAMS]  = {0};
+    int32_t  team_builder_idx[GAME_MAX_TEAMS] = {-1, -1};
+
+    for (uint32_t t = 0; t < setup.num_teams; t++)
     {
-        // Load units from a single side for the demo
-        // Try sides in order until we get enough units with walk animations
-        static const char* side_names[] = {"knights", "darkdwarves", "barbarians", "undead",
-                                           "orcs", "empire", "highelves", NULL};
-        char active_side_dir[512] = {0};
+        const side_def* side = &g_sides[setup.teams[t].side];
+        char side_dir[512];
+        snprintf(side_dir, sizeof(side_dir), "%s/sides/%s", baked_dir, side->folder);
 
-        for (int s = 0; side_names[s] && num_unit_types < 3; s++)
+        team_type_offset[t] = num_unit_types;
+
+        uint32_t loaded = baked_load_side_units(
+            unit_types + num_unit_types, MAX_UNIT_TYPES - num_unit_types,
+            side_dir, unit_defs, num_unit_defs);
+
+        // Apply stats from baked definitions
+        for (uint32_t i = num_unit_types; i < num_unit_types + loaded; i++)
         {
-            snprintf(active_side_dir, sizeof(active_side_dir), "%s/sides/%s", baked_dir, side_names[s]);
-
-            // Scan the baked unit defs for codes, try loading each from this side
-            for (uint32_t d = 0; d < num_unit_defs && num_unit_types < MAX_UNIT_TYPES; d++)
+            for (uint32_t d = 0; d < num_unit_defs; d++)
             {
-                // Skip if we already have this code
-                bool dup = false;
-                for (uint32_t j = 0; j < num_unit_types; j++)
-                    if (strcmp(unit_types[j].base_code, unit_defs[d].code) == 0) { dup = true; break; }
-                if (dup) continue;
-
-                unit_type ut = {0};
-                if (baked_load_unit_type(&ut, active_side_dir, unit_defs[d].code))
+                if (strcmp(unit_types[i].base_code, unit_defs[d].code) == 0)
                 {
-                    if (ut.tex[ANI_WALK] != UINT32_MAX)
-                    {
-                        // Apply stats from baked definitions
-                        ut.max_health = (int16_t)unit_defs[d].hits;
-                        ut.attack_damage = (int16_t)unit_defs[d].damage;
-                        ut.armor = (int16_t)unit_defs[d].armor;
-                        ut.combat_skill = (int16_t)unit_defs[d].combat;
-                        ut.attack_range = (float)unit_defs[d].damage_range;
-                        ut.aggro_range = 300.0f;
-                        ut.attack_cooldown = 1.0f;
-                        unit_types[num_unit_types++] = ut;
-                        fprintf(stderr, "[main] Loaded unit: %s '%s' HP=%d DMG=%d\n",
-                                ut.base_code, unit_defs[d].name,
-                                ut.max_health, ut.attack_damage);
-                    }
+                    unit_types[i].max_health = (int16_t)unit_defs[d].hits;
+                    unit_types[i].attack_damage = (int16_t)unit_defs[d].damage;
+                    unit_types[i].armor = (int16_t)unit_defs[d].armor;
+                    unit_types[i].combat_skill = (int16_t)unit_defs[d].combat;
+                    unit_types[i].attack_range = (float)unit_defs[d].damage_range;
+                    unit_types[i].aggro_range = 300.0f;
+                    unit_types[i].attack_cooldown = 1.0f;
+                    break;
                 }
             }
-
-            // Stop once we have at least 3 from one side
-            if (num_unit_types >= 3) break;
-
-            // Reset if this side didn't work
-            if (num_unit_types == 0)
-                active_side_dir[0] = '\0';
         }
+
+        team_type_count[t] = loaded;
+
+        // Find builder unit type for this team
+        int32_t builder = game_find_builder_type(
+            unit_types + team_type_offset[t], loaded,
+            unit_defs, num_unit_defs, setup.teams[t].side);
+        if (builder >= 0)
+            team_builder_idx[t] = (int32_t)team_type_offset[t] + builder;
+
+        num_unit_types += loaded;
+
+        fprintf(stderr, "[main] Team %u (%s): %u unit types, builder=%s (idx %d)\n",
+                t, side->display_name, loaded,
+                team_builder_idx[t] >= 0 ? unit_types[team_builder_idx[t]].base_code : "none",
+                team_builder_idx[t]);
     }
 
     if (num_unit_types == 0)
@@ -318,60 +333,41 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // Load sounds from baked WAV files
+    // Load sounds by name from baked SFX
     uint32_t snd_attack = UINT32_MAX;
     uint32_t snd_die = UINT32_MAX;
     uint32_t snd_select = UINT32_MAX;
     uint32_t snd_move = UINT32_MAX;
     {
-        char wav_path[512];
-        // Try to load sounds by known names from SoundFX archive
-        // The baker extracted WAVs by their original resource names
-        static const struct { const char* name; uint32_t* target; } sound_map[] = {
-            {"swordhit1.wav", NULL},  // loaded below
-            {"swordhit2.wav", NULL},
-        };
-        (void)sound_map;
-
-        // Load first few available sounds as generic sound slots
-        snprintf(wav_path, sizeof(wav_path), "%s/sounds/sfx", baked_dir);
-        // Try known sound filenames from the baked SoundFX archive
-        static const char* try_sounds[] = {
-            "goodselect.wav", "newclick.wav", "attack00.wav", "attack01.wav",
-            "death1.wav", "death2.wav", NULL
-        };
-        for (int i = 0; try_sounds[i]; i++)
-        {
-            char full_path[512];
-            snprintf(full_path, sizeof(full_path), "%s/sounds/sfx/%s", baked_dir, try_sounds[i]);
-            uint32_t h = baked_load_sound(full_path);
-            if (h == UINT32_MAX) continue;
-
-            if (snd_select == UINT32_MAX) { snd_select = h; snd_move = h; }
-            else if (snd_attack == UINT32_MAX) snd_attack = h;
-            else if (snd_die == UINT32_MAX) { snd_die = h; break; }
-        }
-        fprintf(stderr, "[main] Sounds loaded: select=%u move=%u attack=%u die=%u\n",
+        char wav[512];
+        snprintf(wav, sizeof(wav), "%s/sounds/sfx/goodselect.wav", baked_dir);
+        snd_select = baked_load_sound(wav);
+        snprintf(wav, sizeof(wav), "%s/sounds/sfx/newclick.wav", baked_dir);
+        snd_move = baked_load_sound(wav);
+        if (snd_move == UINT32_MAX) snd_move = snd_select;
+        snprintf(wav, sizeof(wav), "%s/sounds/sfx/swordhit1.wav", baked_dir);
+        snd_attack = baked_load_sound(wav);
+        snprintf(wav, sizeof(wav), "%s/sounds/sfx/death1.wav", baked_dir);
+        snd_die = baked_load_sound(wav);
+        fprintf(stderr, "[main] Sounds: select=%u move=%u attack=%u die=%u\n",
                 snd_select, snd_move, snd_attack, snd_die);
     }
 
     // Resources
     resource_bank banks[MAX_TEAMS] = {0};
-    resource_init(&banks[0], 500, 200, 200, 200); // player
-    resource_init(&banks[1], 500, 200, 200, 200); // enemy
+    resource_init(&banks[0], INITIAL_GOLD, INITIAL_METAL, INITIAL_CRYSTAL, INITIAL_STONE); // player
+    resource_init(&banks[1], INITIAL_GOLD, INITIAL_METAL, INITIAL_CRYSTAL, INITIAL_STONE); // enemy
 
-    // Spawn two teams
+    // Spawn builder unit per team at starting position
     unit_array units = {0};
-
-    // Player team (left side)
-    for (int i = 0; i < 5; ++i)
-        unit_spawn(&units, &unit_types[0], 200.0f + (float)i * 60.0f, 250.0f + (float)i * 30.0f, 0);
-
-    // Enemy team (right side)
-    const unit_type* enemy_type = num_unit_types > 1 ? &unit_types[1] : &unit_types[0];
-    for (int i = 0; i < 5; ++i)
-        unit_spawn(&units, enemy_type, 800.0f + (float)i * 60.0f, 250.0f + (float)i * 30.0f, 1);
-
+    for (uint32_t t = 0; t < setup.num_teams; t++)
+    {
+        if (team_builder_idx[t] < 0) continue;
+        // Spawn offset from town hall: 3 cells right, 2 cells down
+        float spawn_x = (float)(setup.teams[t].start_cx + 3) * CELL_W + CELL_W * 0.5f;
+        float spawn_y = (float)(setup.teams[t].start_cy + 2) * CELL_H + CELL_H * 0.5f;
+        unit_spawn(&units, &unit_types[team_builder_idx[t]], spawn_x, spawn_y, (uint8_t)t);
+    }
     fprintf(stderr, "[main] Spawned %u units (%u types)\n", units.count, num_unit_types);
 
     // Buildings
@@ -380,9 +376,10 @@ int main(int argc, char* argv[])
     building_array buildings = {0};
     building_array_init(&buildings);
 
-    // Place starting town halls
-    building_place(&buildings, &map, NULL, building_types, BTYPE_TOWN_HALL, 4, 8, 0);  // player
-    building_place(&buildings, &map, NULL, building_types, BTYPE_TOWN_HALL, 60, 8, 1); // enemy
+    // Place starting town halls at each team's starting position
+    for (uint32_t t = 0; t < setup.num_teams; t++)
+        building_place(&buildings, &map, NULL, building_types, BTYPE_TOWN_HALL,
+                       setup.teams[t].start_cx, setup.teams[t].start_cy, (uint8_t)t);
 
     // Mines
     mine_array mines = {0};
@@ -396,8 +393,8 @@ int main(int argc, char* argv[])
     mine_place(&mines, &map, 45, 5, RES_STONE, 2);
 
     // Claim mines near starting town halls
-    mines_claim_nearby(&mines, 5, 9, 10, 0);
-    mines_claim_nearby(&mines, 61, 9, 10, 1);
+    for (uint32_t t = 0; t < setup.num_teams; t++)
+        mines_claim_nearby(&mines, setup.teams[t].start_cx + 1, setup.teams[t].start_cy + 1, 10, (uint8_t)t);
 
     // Input mode
     typedef enum { INPUT_MODE_NORMAL = 0, INPUT_MODE_PLACING = 1 } input_mode;
@@ -441,8 +438,8 @@ int main(int argc, char* argv[])
             free(mm_pixels);
         }
     }
-    const float minimap_scale = 1.5f; // display pixels per map cell
-    const float minimap_margin = 8.0f;
+    const float minimap_scale = MINIMAP_SCALE;
+    const float minimap_margin = MINIMAP_MARGIN;
 
     float cam_x = 0, cam_y = 0;
     static float cam_speed = 500.0f;          // pixels per second
@@ -686,12 +683,62 @@ int main(int argc, char* argv[])
             for (int cy = start_cy; cy < end_cy; cy++)
                 for (int cx = start_cx; cx < end_cx; cx++)
                 {
+                    size_t cell_idx = (size_t)cy * map.width + cx;
+
+                    // Try per-tile texture from scenario visuals
+                    if (scn_vis.cell_tile_index && scn_vis.cell_tile_index[cell_idx] != 0xFFFF)
+                    {
+                        uint16_t ti = scn_vis.cell_tile_index[cell_idx];
+                        if (ti < scn_vis.num_tile_textures && scn_vis.tile_textures[ti] != UINT32_MAX)
+                        {
+                            float cw = (float)scn_vis.tile_cell_w[ti];
+                            float ch = (float)scn_vis.tile_cell_h[ti];
+                            float uv_x = (float)scn_vis.cell_local_x[cell_idx] / cw;
+                            float uv_y = (float)scn_vis.cell_local_y[cell_idx] / ch;
+                            gfx_draw_sprite_region((float)(cx * CELL_W), (float)(cy * CELL_H),
+                                                   (float)CELL_W, (float)CELL_H,
+                                                   scn_vis.tile_textures[ti], 0xFFFFFFFF,
+                                                   uv_x, uv_y, 1.0f / cw, 1.0f / ch);
+                            continue;
+                        }
+                    }
+
+                    // Fallback: terrain type texture
                     uint8_t terrain = map_get(&map, (uint32_t)cx, (uint32_t)cy).terrain;
                     if (terrain >= TERRAIN_COUNT) terrain = TERRAIN_VOID;
-                    gfx_draw_sprite((float)(cx * CELL_W), (float)(cy * CELL_H),
-                                    (float)CELL_W, (float)CELL_H,
-                                    terrain_textures[terrain], 0xFFFFFFFF);
+                    float uv_x = (float)(cx % 10) * 0.1f;
+                    float uv_y = (float)(cy % 10) * 0.1f;
+                    gfx_draw_sprite_region((float)(cx * CELL_W), (float)(cy * CELL_H),
+                                           (float)CELL_W, (float)CELL_H,
+                                           terrain_textures[terrain], 0xFFFFFFFF,
+                                           uv_x, uv_y, 0.1f, 0.1f);
                 }
+
+            // Features (drawn before units as background decoration)
+            for (uint32_t fi = 0; fi < scn_vis.num_features; fi++)
+            {
+                const loaded_feature* lf = &scn_vis.features[fi];
+                if (lf->texture == UINT32_MAX || lf->frame_w == 0 || lf->frame_h == 0) continue;
+
+                // Viewport cull (in cell coordinates)
+                if ((int)lf->x < start_cx - 3 || (int)lf->x > end_cx + 3) continue;
+                if ((int)lf->y < start_cy - 3 || (int)lf->y > end_cy + 3) continue;
+
+                // Screen position: cell position minus ANI origin pivot
+                float sx = (float)(lf->x * CELL_W) - (float)lf->origin_x;
+                float sy = (float)(lf->y * CELL_H) - (float)lf->origin_y;
+
+                // UV for frame 0 of the given direction
+                uint8_t dir = lf->direction < 8 ? lf->direction : 0;
+                float uv_w = (float)lf->frame_w / (float)lf->sheet_w;
+                float uv_h = (float)lf->frame_h / (float)lf->sheet_h;
+                float uv_x = 0.0f; // frame 0
+                float uv_y = (float)dir * uv_h;
+
+                gfx_draw_sprite_region(sx, sy, (float)lf->frame_w, (float)lf->frame_h,
+                                       lf->texture, 0xFFFFFFFF,
+                                       uv_x, uv_y, uv_w, uv_h);
+            }
 
             // Mines
             mines_draw(&mines, white_tex);
@@ -769,7 +816,10 @@ int main(int argc, char* argv[])
     }
 
 done:
+    font_unload(&title_font);
+    font_unload(&ui_font);
     audio_shutdown();
+    scenario_visuals_free(&scn_vis);
     map_free(&map);
     free(unit_defs);
     gfx_shutdown();

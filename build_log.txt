@@ -1,0 +1,2 @@
+'\"C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat\"' is not recognized as an internal or external command,
+operable program or batch file.

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "font.h"
-#include "gfx.h"
 #include <stdint.h>
+
+typedef struct font font;
+typedef struct gfx_input gfx_input;
 
 typedef enum
 {

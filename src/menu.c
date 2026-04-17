@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "font.h"
 #include "gfx.h"
 
 #include <string.h>

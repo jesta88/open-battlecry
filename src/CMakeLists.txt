@@ -2,9 +2,7 @@ add_executable(game
     main.c
     gfx.c
     file_io.c
-    xcr.c
     image.c
-    stb_image.c
     stb_truetype.c
     ani.c
     entity.c
@@ -18,6 +16,7 @@ add_executable(game
     mine.c
     building.c
     baked_loader.c
+    game_setup.c
     console.c
 )
 

@@ -1,4 +1,11 @@
 #include "console.h"
+#include "entity.h"
+#include "building.h"
+#include "resource.h"
+#include "mine.h"
+#include "map.h"
+#include "font.h"
+#include "gfx.h"
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>

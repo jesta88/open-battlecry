@@ -36,12 +36,16 @@ void gfx_draw_sprite_region(float x, float y, float w, float h,
                             uint32_t texture_index, uint32_t color,
                             float uv_x, float uv_y, float uv_w, float uv_h);
 
+// Draw an unfilled rectangle (border only).
+void gfx_draw_rect(float x, float y, float w, float h, float thickness,
+                    uint32_t texture_index, uint32_t color);
+
 // Set camera offset (pixel coordinates)
 void gfx_set_camera(float x, float y);
 void gfx_get_camera(float* x, float* y);
 
 // Input state (updated each frame during gfx_poll_events)
-typedef struct
+typedef struct gfx_input
 {
     bool mouse_left_pressed;    // true on the frame the button went down
     bool mouse_right_pressed;

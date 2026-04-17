@@ -1,4 +1,7 @@
 #include "hud.h"
+#include "font.h"
+#include "entity.h"
+#include "resource.h"
 #include "gfx.h"
 
 #include <stdio.h>

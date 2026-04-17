@@ -53,7 +53,7 @@ typedef struct
 	uint8_t flags;
 } map_cell;
 
-typedef struct
+typedef struct game_map
 {
 	map_cell* cells; // width * height, row-major
 	uint32_t width;

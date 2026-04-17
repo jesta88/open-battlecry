@@ -3,17 +3,20 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define COST_IMPASSABLE    1000
+#define COST_OUT_OF_BOUNDS 2000
+
 // ---------------------------------------------------------------------------
 // Terrain cost table (from WBC3 Data.cpp g_TerrainCost)
-// Indexed as [move_mode][terrain_type]. Values >= 1000 are impassable.
+// Indexed as [move_mode][terrain_type]. Values >= COST_IMPASSABLE are impassable.
 // ---------------------------------------------------------------------------
 
 static const uint16_t g_terrain_cost[MOVE_COUNT][TERRAIN_COUNT] = {
 	// grass dirt sand water rock lava marsh ford snow void mountain walls impassable
-	{2, 2, 2, 1000, 2, 1000, 2, 2, 2, 1000, 1000, 2, 2000}, // LAND
-	{2, 2, 2, 2, 2, 2, 2, 2, 2, 1000, 2, 2, 2000},           // FLY
-	{1000, 1000, 1000, 2, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000}, // SEA
-	{2, 2, 2, 2, 2, 1000, 2, 2, 2, 1000, 1000, 2, 2000},     // FLOAT
+	{2, 2, 2, COST_IMPASSABLE, 2, COST_IMPASSABLE, 2, 2, 2, COST_IMPASSABLE, COST_IMPASSABLE, 2, COST_OUT_OF_BOUNDS}, // LAND
+	{2, 2, 2, 2, 2, 2, 2, 2, 2, COST_IMPASSABLE, 2, 2, COST_OUT_OF_BOUNDS},           // FLY
+	{COST_IMPASSABLE, COST_IMPASSABLE, COST_IMPASSABLE, 2, COST_IMPASSABLE, COST_IMPASSABLE, COST_IMPASSABLE, COST_IMPASSABLE, COST_IMPASSABLE, COST_IMPASSABLE, COST_IMPASSABLE, COST_IMPASSABLE, COST_IMPASSABLE}, // SEA
+	{2, 2, 2, 2, 2, COST_IMPASSABLE, 2, 2, 2, COST_IMPASSABLE, COST_IMPASSABLE, 2, COST_OUT_OF_BOUNDS},     // FLOAT
 };
 
 // ---------------------------------------------------------------------------
@@ -64,20 +67,20 @@ bool map_walkable(const game_map* map, uint32_t x, uint32_t y, uint8_t move_mode
 		return false;
 	if (map->cells[y * map->width + x].flags & CELL_FLAG_BUILDING)
 		return false;
-	return map_cost(map, x, y, move_mode) < 1000;
+	return map_cost(map, x, y, move_mode) < COST_IMPASSABLE;
 }
 
 uint16_t map_cost(const game_map* map, uint32_t x, uint32_t y, uint8_t move_mode)
 {
 	if (x >= map->width || y >= map->height)
-		return 2000;
+		return COST_OUT_OF_BOUNDS;
 	if (move_mode >= MOVE_COUNT)
-		return 2000;
+		return COST_OUT_OF_BOUNDS;
 	map_cell c = map->cells[y * map->width + x];
 	if (c.flags & CELL_FLAG_BUILDING)
-		return 2000;
+		return COST_OUT_OF_BOUNDS;
 	if (c.terrain >= TERRAIN_COUNT)
-		return 2000;
+		return COST_OUT_OF_BOUNDS;
 	return g_terrain_cost[move_mode][c.terrain];
 }
 

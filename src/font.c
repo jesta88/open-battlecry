@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define FONT_ATLAS_MIN  512
+#define FONT_ATLAS_MAX  1024
+
 bool font_load(font* f, const char* ttf_path, float pixel_size)
 {
 	memset(f, 0, sizeof(*f));
@@ -40,7 +43,7 @@ bool font_load(font* f, const char* ttf_path, float pixel_size)
 
 	// Bake font atlas — try 512x512, then 1024x1024
 	stbtt_bakedchar baked[FONT_GLYPH_COUNT];
-	int atlas_w = 512, atlas_h = 512;
+	int atlas_w = FONT_ATLAS_MIN, atlas_h = FONT_ATLAS_MIN;
 	uint8_t* alpha_bitmap = malloc((size_t)atlas_w * atlas_h);
 
 	int result = stbtt_BakeFontBitmap(ttf_data, 0, pixel_size,
@@ -50,8 +53,8 @@ bool font_load(font* f, const char* ttf_path, float pixel_size)
 	{
 		// Not all glyphs fit — retry with larger atlas
 		free(alpha_bitmap);
-		atlas_w = 1024;
-		atlas_h = 1024;
+		atlas_w = FONT_ATLAS_MAX;
+		atlas_h = FONT_ATLAS_MAX;
 		alpha_bitmap = malloc((size_t)atlas_w * atlas_h);
 		result = stbtt_BakeFontBitmap(ttf_data, 0, pixel_size,
 		                               alpha_bitmap, atlas_w, atlas_h,
@@ -108,6 +111,13 @@ bool font_load(font* f, const char* ttf_path, float pixel_size)
 	fprintf(stderr, "[font] Loaded %.0fpx font: %s (%dx%d atlas)\n",
 	        pixel_size, ttf_path, atlas_w, atlas_h);
 	return true;
+}
+
+void font_unload(font* f)
+{
+	// TODO: call gfx_destroy_texture(f->atlas_texture) once implemented
+	memset(f, 0, sizeof(*f));
+	f->atlas_texture = UINT32_MAX;
 }
 
 float font_draw_text(const font* f, float x, float y, const char* text, uint32_t color)

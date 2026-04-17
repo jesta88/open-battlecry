@@ -67,9 +67,11 @@ src/
   audio.h/audio.c       — SDL3 audio: WAV loading from memory, multi-channel playback via SDL_AudioStream
   hud.h/hud.c           — HUD overlay: unit info panel, resource bar, FPS counter
   menu.h/menu.c         — Main menu + pause menu with keyboard navigation
+  game_setup.h/c        — Side definitions (16 races), team setup, default game config, builder unit lookup
+  console.h/console.c   — Dev console: command/variable registry, input, output ring buffer, entity targeting
   baked_format.h        — Shared binary record structs (used by both game and asset_baker)
   baked_loader.h/c      — Load terrain BMPs, unit sprites, unit stats, sounds from baked directory
-  xcr.h/xcr.c           — WBC3 XCR archive loader with decryption (used by asset_baker at build time)
+  xcr.h/xcr.c           — WBC3 XCR archive loader with decryption (compiled into asset_baker only, not the game)
   image.h/image.c       — RLE sprite decoder + BMP decoder (via stb_image)
   ani.h/ani.c           — WBC3 ANI metadata parser + animation player (frame cycling, UV computation)
   file_io.h/file_io.c   — Binary file reader
@@ -137,3 +139,26 @@ baked/
 - **Vulkan approach:** Vulkan 1.4 — dynamic rendering, synchronization2, descriptor indexing (bindless), per-swapchain-image semaphores
 - **Compiler defaults:** Applied via `recon_target_defaults(target)` from `cmake/Options.cmake` — C23, AVX2, `/W4`, LTO for release, sccache/ccache
 - **Dependencies:** Volk (Vulkan loader), SDL3 (windowing + audio), stb_image (BMP), stb_truetype (TTF), stb_image_write (baker only). Vulkan-Headers auto-fetched if SDK absent.
+
+### Header Include Policy
+
+- **Headers must not include other project headers** except `<stdint.h>` and `<stdbool.h>`, unless the included type is used **by value** (embedded in a struct, not just as a pointer).
+- When a type is only used as a pointer in a header's API, use a **forward declaration** instead: `typedef struct foo foo;`. This requires all forward-declarable structs to have **named tags** (e.g., `typedef struct game_map { ... } game_map;` not anonymous).
+- Move the full `#include` to the corresponding `.c` file where the type is actually dereferenced.
+- Current exceptions (by-value embedding requires the include): `entity.h` includes `ani.h` + `pathfind.h`; `building.h` includes `resource.h`.
+
+### Magic Numbers
+
+- Use `#define` constants for tuning values, thresholds, and sentinel values. Keep defines local to the `.c` file that uses them — don't create shared constants headers unless multiple files need the same value.
+- Examples: `COST_IMPASSABLE`, `MINE_UNCLAIMED`, `UNIT_MOVE_SPEED`, `CLICK_THRESHOLD`, `HEALTH_BAR_W`.
+
+### Module Lifecycle
+
+- Modules that allocate resources should provide paired init/cleanup functions (e.g., `font_load`/`font_unload`, `map_init`/`map_free`, `gfx_init`/`gfx_shutdown`).
+- Shutdown order in `main.c` should be reverse of init order. GPU-dependent cleanup must happen before `gfx_shutdown()`.
+
+### XCR / Asset Baker Boundary
+
+- `xcr.c` is compiled **only** into the `asset_baker` target (via `tools/CMakeLists.txt`), not the game.
+- The game loads exclusively from the baked directory — no XCR decryption or RLE decoding at runtime.
+- Code shared between baker and game (e.g., `baked_format.h`, `image.c`, `ani.c`) lives in `src/` and is referenced by `tools/CMakeLists.txt` via relative paths.

@@ -1,14 +1,16 @@
 #pragma once
 
-#include "entity.h"
-#include "building.h"
-#include "resource.h"
-#include "mine.h"
-#include "map.h"
-#include "font.h"
-#include "gfx.h"
 #include <stdbool.h>
 #include <stdint.h>
+
+typedef struct unit_array unit_array;
+typedef struct unit_type unit_type;
+typedef struct game_map game_map;
+typedef struct building_array building_array;
+typedef struct resource_bank resource_bank;
+typedef struct mine_array mine_array;
+typedef struct font font;
+typedef struct gfx_input gfx_input;
 
 enum
 {

@@ -1,9 +1,10 @@
 #pragma once
 
-#include "font.h"
-#include "entity.h"
-#include "resource.h"
 #include <stdint.h>
+
+typedef struct font font;
+typedef struct unit_array unit_array;
+typedef struct resource_bank resource_bank;
 
 typedef struct
 {

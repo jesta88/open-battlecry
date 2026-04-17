@@ -20,7 +20,7 @@ typedef struct
 	float advance;         // horizontal advance in pixels
 } font_glyph;
 
-typedef struct
+typedef struct font
 {
 	uint32_t atlas_texture; // gfx bindless texture index
 	float pixel_size;       // the font size this was baked at
@@ -32,6 +32,10 @@ typedef struct
 
 // Load a TTF from file path and bake into a GPU atlas at the given pixel size.
 bool font_load(font* f, const char* ttf_path, float pixel_size);
+
+// Release font resources. Note: GPU texture cleanup requires gfx_destroy_texture()
+// which is not yet implemented — for now this zeros the struct.
+void font_unload(font* f);
 
 // Draw a string at screen position (x, y). Camera offset is canceled internally.
 // color: packed RGBA (0xFFFFFFFF = white).

@@ -1,4 +1,7 @@
 #include "building.h"
+#include "map.h"
+#include "entity.h"
+#include "mine.h"
 #include "gfx.h"
 
 #include <stdio.h>

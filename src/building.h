@@ -1,11 +1,13 @@
 #pragma once
 
-#include "map.h"
 #include "resource.h"
-#include "entity.h"
-#include "mine.h"
 #include <stdbool.h>
 #include <stdint.h>
+
+typedef struct game_map game_map;
+typedef struct unit_array unit_array;
+typedef struct unit_type unit_type;
+typedef struct mine_array mine_array;
 
 enum
 {
@@ -50,7 +52,7 @@ typedef struct
 	bool selected;
 } building;
 
-typedef struct
+typedef struct building_array
 {
 	building buildings[MAX_BUILDINGS];
 	uint32_t count;

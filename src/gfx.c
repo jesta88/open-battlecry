@@ -1247,6 +1247,15 @@ void gfx_draw_sprite(float x, float y, float w, float h, uint32_t texture_index,
     gfx_draw_sprite_region(x, y, w, h, texture_index, color, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
+void gfx_draw_rect(float x, float y, float w, float h, float t,
+                    uint32_t texture_index, uint32_t color)
+{
+    gfx_draw_sprite(x, y, w, t, texture_index, color);         // top
+    gfx_draw_sprite(x, y + h - t, w, t, texture_index, color); // bottom
+    gfx_draw_sprite(x, y, t, h, texture_index, color);         // left
+    gfx_draw_sprite(x + w - t, y, t, h, texture_index, color); // right
+}
+
 void gfx_draw_sprite_region(float x, float y, float w, float h,
                             uint32_t texture_index, uint32_t color,
                             float uv_x, float uv_y, float uv_w, float uv_h)

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "map.h"
 #include <stdbool.h>
 #include <stdint.h>
+
+typedef struct game_map game_map;
 
 enum
 {

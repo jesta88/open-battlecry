@@ -1,7 +1,12 @@
 #include "mine.h"
+#include "map.h"
+#include "resource.h"
 #include "gfx.h"
 
 #include <stdlib.h>
+
+#define MINE_TICK_INTERVAL  5.0f
+#define MINE_UNCLAIMED      0xFF
 
 void mine_array_init(mine_array* arr)
 {
@@ -19,10 +24,10 @@ uint32_t mine_place(mine_array* arr, game_map* map, uint32_t cx, uint32_t cy,
 	m->cx = cx;
 	m->cy = cy;
 	m->resource_type = resource_type;
-	m->owner = 0xFF;
+	m->owner = MINE_UNCLAIMED;
 	m->yield_per_tick = yield;
 	m->tick_timer = 0.0f;
-	m->tick_interval = 5.0f;
+	m->tick_interval = MINE_TICK_INTERVAL;
 	m->active = true;
 
 	map_set_footprint(map, cx, cy, 1, 1, CELL_FLAG_MINE);
@@ -34,7 +39,7 @@ void mines_update(mine_array* arr, resource_bank* banks, float dt)
 	for (uint32_t i = 0; i < arr->count; i++)
 	{
 		mine* m = &arr->mines[i];
-		if (!m->active || m->owner == 0xFF) continue;
+		if (!m->active || m->owner == MINE_UNCLAIMED) continue;
 
 		m->tick_timer += dt;
 		if (m->tick_timer >= m->tick_interval)
@@ -61,7 +66,7 @@ void mines_draw(const mine_array* arr, uint32_t white_tex)
 
 		uint32_t color = mine_colors[m->resource_type % RES_COUNT];
 		// Dim unclaimed mines
-		if (m->owner == 0xFF)
+		if (m->owner == MINE_UNCLAIMED)
 			color = (color & 0x00FFFFFF) | 0x80000000;
 
 		float x = (float)(m->cx * CELL_W) + 4.0f;
@@ -79,7 +84,7 @@ void mines_claim_nearby(mine_array* arr, uint32_t cx, uint32_t cy, uint32_t radi
 	for (uint32_t i = 0; i < arr->count; i++)
 	{
 		mine* m = &arr->mines[i];
-		if (!m->active || m->owner != 0xFF) continue;
+		if (!m->active || m->owner != MINE_UNCLAIMED) continue;
 
 		int dx = (int)m->cx - (int)cx;
 		int dy = (int)m->cy - (int)cy;

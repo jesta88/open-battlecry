@@ -1,8 +1,5 @@
 #include "image.h"
-
-#define STBI_ONLY_BMP
-#define STBI_NO_STDIO
-#include "stb_image.h"
+#include "baked_format.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -151,25 +148,137 @@ bool image_decode_rle(const uint8_t* data, uint32_t size, image* out)
 }
 
 // ---------------------------------------------------------------------------
-// BMP decoder (via stb_image)
+// Raw RGBA texture decoder (.tex format)
+// ---------------------------------------------------------------------------
+
+bool image_decode_tex(const uint8_t* data, uint32_t size, image* out)
+{
+    if (!data || size < sizeof(baked_tex_header) || !out)
+        return false;
+
+    const baked_tex_header* hdr = (const baked_tex_header*)data;
+    if (hdr->magic != BAKED_TEX_MAGIC)
+        return false;
+
+    uint32_t pixel_size = hdr->width * hdr->height * 4;
+    if (size < sizeof(baked_tex_header) + pixel_size)
+        return false;
+
+    uint8_t* pixels = malloc(pixel_size);
+    if (!pixels) return false;
+
+    memcpy(pixels, data + sizeof(baked_tex_header), pixel_size);
+
+    out->pixels = pixels;
+    out->width = hdr->width;
+    out->height = hdr->height;
+    return true;
+}
+
+// ---------------------------------------------------------------------------
+// Fast BMP decoder (hand-written, replaces stb_image for BMP)
+// Handles 24-bit and 32-bit uncompressed BMPs (bottom-up and top-down).
 // ---------------------------------------------------------------------------
 
 bool image_decode_bmp(const uint8_t* data, uint32_t size, image* out)
 {
-    if (!data || size == 0 || !out)
+    if (!data || size < 54 || !out)
         return false;
 
-    int w, h, channels;
-    uint8_t* pixels = stbi_load_from_memory(data, (int)size, &w, &h, &channels, 4); // force RGBA
-    if (!pixels)
-    {
-        fprintf(stderr, "[image] BMP decode failed: %s\n", stbi_failure_reason());
+    // BMP magic
+    if (data[0] != 'B' || data[1] != 'M')
         return false;
+
+    // BITMAPFILEHEADER (14 bytes)
+    uint32_t pixel_offset = *(const uint32_t*)(data + 10);
+
+    // BITMAPINFOHEADER (40 bytes, starts at offset 14)
+    int32_t width  = *(const int32_t*)(data + 18);
+    int32_t height = *(const int32_t*)(data + 22);
+    uint16_t bpp   = *(const uint16_t*)(data + 28);
+    uint32_t compression = *(const uint32_t*)(data + 30);
+
+    if (width <= 0 || height == 0)
+        return false;
+
+    // Only uncompressed (BI_RGB=0, BI_BITFIELDS=3 for 32-bit)
+    if (compression != 0 && compression != 3)
+        return false;
+    if (bpp != 8 && bpp != 24 && bpp != 32)
+        return false;
+
+    bool bottom_up = (height > 0);
+    uint32_t abs_w = (uint32_t)width;
+    uint32_t abs_h = bottom_up ? (uint32_t)height : (uint32_t)(-height);
+
+    // Row stride (rows are padded to 4-byte alignment)
+    uint32_t src_stride;
+    if (bpp == 8)       src_stride = (abs_w + 3) & ~3u;
+    else if (bpp == 24) src_stride = (abs_w * 3 + 3) & ~3u;
+    else                src_stride = abs_w * 4;
+
+    if (pixel_offset + (uint64_t)src_stride * abs_h > size)
+        return false;
+
+    // For 8-bit: read the palette (located right after the 40-byte BITMAPINFOHEADER at offset 54)
+    uint8_t palette[256][4]; // BGRA
+    if (bpp == 8)
+    {
+        uint32_t num_colors = *(const uint32_t*)(data + 46); // biClrUsed
+        if (num_colors == 0) num_colors = 256;
+        if (num_colors > 256) num_colors = 256;
+        uint32_t palette_offset = 14 + *(const uint32_t*)(data + 14); // 14 + biSize
+        if (palette_offset + num_colors * 4 > size) return false;
+        memcpy(palette, data + palette_offset, num_colors * 4);
+    }
+
+    uint8_t* pixels = malloc(abs_w * abs_h * 4);
+    if (!pixels) return false;
+
+    const uint8_t* src = data + pixel_offset;
+
+    for (uint32_t y = 0; y < abs_h; y++)
+    {
+        uint32_t src_y = bottom_up ? (abs_h - 1 - y) : y;
+        const uint8_t* row = src + src_y * src_stride;
+        uint8_t* dst = pixels + y * abs_w * 4;
+
+        if (bpp == 32)
+        {
+            for (uint32_t x = 0; x < abs_w; x++)
+            {
+                dst[x * 4 + 0] = row[x * 4 + 2]; // R from B
+                dst[x * 4 + 1] = row[x * 4 + 1]; // G
+                dst[x * 4 + 2] = row[x * 4 + 0]; // B from R
+                dst[x * 4 + 3] = row[x * 4 + 3]; // A
+            }
+        }
+        else if (bpp == 24)
+        {
+            for (uint32_t x = 0; x < abs_w; x++)
+            {
+                dst[x * 4 + 0] = row[x * 3 + 2]; // R
+                dst[x * 4 + 1] = row[x * 3 + 1]; // G
+                dst[x * 4 + 2] = row[x * 3 + 0]; // B
+                dst[x * 4 + 3] = 255;             // A (opaque)
+            }
+        }
+        else // 8-bit indexed
+        {
+            for (uint32_t x = 0; x < abs_w; x++)
+            {
+                uint8_t idx = row[x];
+                dst[x * 4 + 0] = palette[idx][2]; // R from B
+                dst[x * 4 + 1] = palette[idx][1]; // G
+                dst[x * 4 + 2] = palette[idx][0]; // B from R
+                dst[x * 4 + 3] = 255;             // A (opaque)
+            }
+        }
     }
 
     out->pixels = pixels;
-    out->width = (uint32_t)w;
-    out->height = (uint32_t)h;
+    out->width = abs_w;
+    out->height = abs_h;
     return true;
 }
 
